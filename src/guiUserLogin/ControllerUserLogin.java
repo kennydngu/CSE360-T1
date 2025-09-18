@@ -15,6 +15,8 @@ public class ControllerUserLogin {
 	the Model is often just a stub, or will be a singleton instantiated object.
 	
 	*/
+	
+	// Test to see if the pulling works
 
 
 	// Reference for the in-memory database so this package has access
