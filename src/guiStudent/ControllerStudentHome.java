@@ -11,7 +11,7 @@ public class ControllerStudentHome {
 	the Model is often just a stub, or will be a singleton instantiated object.
 	
 	 */
-	// Andrei commit noteee
+	// Andrei commit noteeeee
 	
  	/**********
 	 * <p> Method: performLogout() </p>
