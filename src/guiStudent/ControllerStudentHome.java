@@ -12,11 +12,17 @@ public class ControllerStudentHome {
 	
 	 */
 <<<<<<< HEAD
+<<<<<<< HEAD
 
-		//kevin's test
+		//kevin test
+=======
+	// Andrei commit noteeeee ...
+>>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1.git
 =======
 		// Angelica's test
 		// Kenny's Test
+//kevin 2nd test
+>>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1
 	
 >>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1.git
  	/**********
