@@ -20,7 +20,11 @@ public class ControllerStudentHome {
 		// Andrei's new test
 		//kennys test
 		//kevins test
+<<<<<<< HEAD
 		// Andreis pushh
+=======
+		// me or andrei : kenny...
+>>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1
 
  	/**********
 	 * <p> Method: performLogout() </p>
