@@ -11,7 +11,12 @@ public class ControllerStudentHome {
 	the Model is often just a stub, or will be a singleton instantiated object.
 	
 	 */
-	// Andrei commit noteeeee
+<<<<<<< HEAD
+	// Andrei commit noteeeee ...
+=======
+		// Angelica's test
+		// Kenny's Test
+>>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1
 	
  	/**********
 	 * <p> Method: performLogout() </p>
