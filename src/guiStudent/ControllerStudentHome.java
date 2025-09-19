@@ -14,16 +14,22 @@ public class ControllerStudentHome {
 <<<<<<< HEAD
 <<<<<<< HEAD
 
-		//kevin test
+		 
 =======
 	// Andrei commit noteeeee ...
 >>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1.git
 =======
 		// Angelica's test
 		// Kenny's Test
-     	//kevin 2nd test
+<<<<<<< HEAD
 >>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1
 	
+>>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1.git
+=======
+		// Andrei's new test
+		//kennys test
+		//kevins test
+
 >>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1.git
  	/**********
 	 * <p> Method: performLogout() </p>
