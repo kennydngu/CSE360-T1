@@ -16,6 +16,7 @@ public class ControllerStudentHome {
 =======
 		// Angelica's test
 		// Kenny's Test
+		// Andrei's new test
 >>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1
 	
  	/**********
