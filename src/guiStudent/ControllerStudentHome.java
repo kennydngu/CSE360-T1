@@ -12,6 +12,7 @@ public class ControllerStudentHome {
 	
 	 */
 		// Angelica's test
+		// Kenny's Test
 	
  	/**********
 	 * <p> Method: performLogout() </p>
