@@ -12,6 +12,7 @@ public class ControllerStudentHome {
 	
 	 */
 	// note for pulling and committing.
+	//kennynguyen
 	
  	/**********
 	 * <p> Method: performLogout() </p>
