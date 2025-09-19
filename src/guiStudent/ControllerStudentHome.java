@@ -20,7 +20,7 @@ public class ControllerStudentHome {
 		// Andrei's new test
 		//kennys test
 		//kevins test
-		// me or andrei : kenny
+		// me or andrei : kenny...
 
  	/**********
 	 * <p> Method: performLogout() </p>
