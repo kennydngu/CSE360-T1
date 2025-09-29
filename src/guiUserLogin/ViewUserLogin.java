@@ -1,6 +1,7 @@
 package guiUserLogin;
 
 import javafx.geometry.Pos;
+import javafx.geometry.Insets;    // ADDED BY KENNY NGUYEN: Needed for VBox padding
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -9,6 +10,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;  // ADDED BY KENNY NGUYEN: VBox for vertical alignment
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -61,8 +63,7 @@ public class ViewUserLogin {
 	private static Button button_Quit = new Button("Quit");
 
 	private static Stage theStage;	
-	private static Pane theRootPane;
-	public static Scene theUserLoginScene = null;	
+	private static Scene theUserLoginScene = null;	
 
 
 	private static ViewUserLogin theView = null;	//	private static guiUserLogin.ControllerUserLogin theController;
@@ -118,63 +119,68 @@ public class ViewUserLogin {
 	 */
 	private ViewUserLogin() {
 
-		// Create the Pane for the list of widgets and the Scene for the window
-		theRootPane = new Pane();
-		theUserLoginScene = new Scene(theRootPane, width, height);
+		// ADDED BY KENNY NGUYEN: VBox for vertical alignment
+		VBox root = new VBox(15);
+		root.setAlignment(Pos.CENTER);
+		root.setPadding(new Insets(20));
+		root.getStyleClass().add("page-root");
 		
-		// Populate the window with the title and other common widgets and set their static state
-		setupLabelUI(label_ApplicationTitle, "Arial", 32, width, Pos.CENTER, 0, 10);
+		// ADDED BY KENNY NGUYEN: Set limiters for width so they do not stretch across the page.
+		text_Username.setMaxWidth(500);
+		text_Password.setMaxWidth(500);
+		text_Invitation.setMaxWidth(500);
+		button_Login.setMaxWidth(150);
+		button_SetupAccount.setMaxWidth(150);
+		button_Quit.setMaxWidth(50);
 
-		setupLabelUI(label_OperationalStartTitle, "Arial", 24, width, Pos.CENTER, 0, 60);
+		theUserLoginScene = new Scene(root, width, height);
+		theUserLoginScene.getStylesheets().add(ViewUserLogin.class.getResource("/styles/app.css").toExternalForm());
+		
+		label_ApplicationTitle.getStyleClass().add("title");
+		label_OperationalStartTitle.getStyleClass().add("subtitle");
 
+		label_LogInInsrtuctions.getStyleClass().add("form-label");
+		label_AccountSetupInsrtuctions.getStyleClass().add("form-label");
 
+		text_Username.getStyleClass().add("text-field");
+		text_Password.getStyleClass().add("password-field");
+		text_Invitation.getStyleClass().add("text-field");
+
+		button_Login.getStyleClass().add("primary-btn");
+		button_Quit.setId("quitBtn");
+		
 		// Existing user log in portion of the page
-
-		setupLabelUI(label_LogInInsrtuctions, "Arial", 18, width, Pos.BASELINE_LEFT, 20, 120);
-
-		// Establish the text input operand field for the username
-		setupTextUI(text_Username, "Arial", 18, 300, Pos.BASELINE_LEFT, 50, 160, true);
 		text_Username.setPromptText("Enter Username");
-
-		// Establish the text input operand field for the password
-		setupTextUI(text_Password, "Arial", 18, 300, Pos.BASELINE_LEFT, 50, 210, true);
 		text_Password.setPromptText("Enter Password");
 
 		// Set up the Log In button
-		setupButtonUI(button_Login, "Dialog", 18, 200, Pos.CENTER, 475, 180);
 		button_Login.setOnAction((event) -> {ControllerUserLogin.doLogin(theStage); });
-
 		alertUsernamePasswordError.setTitle("Invalid username/password!");
 		alertUsernamePasswordError.setHeaderText(null);
 
-
-		// The invitation to setup an account portion of the page
-
-		setupLabelUI(label_AccountSetupInsrtuctions, "Arial", 18, width, Pos.BASELINE_LEFT, 20, 300);
-
-		// Establish the text input operand field for the password
-		setupTextUI(text_Invitation, "Arial", 18, 300, Pos.BASELINE_LEFT, 50, 340, true);
+		// Set up the Setup Account button
 		text_Invitation.setPromptText("Enter Invitation Code");
-
-		// Set up the setup button
-		setupButtonUI(button_SetupAccount, "Dialog", 18, 200, Pos.CENTER, 475, 340);
 		button_SetupAccount.setOnAction((event) -> {
 			System.out.println("**** Calling doSetupAccount");
 			ControllerUserLogin.doSetupAccount(theStage, text_Invitation.getText());
 		});
 
 		// Set up the Quit button  
-		setupButtonUI(button_Quit, "Dialog", 18, 250, Pos.CENTER, 300, 520);
 		button_Quit.setOnAction((event) -> {ControllerUserLogin.performQuit(); });
 
-		//		theRootPane.getChildren().clear();
-
-		theRootPane.getChildren().addAll(
-				label_ApplicationTitle, 
-				label_OperationalStartTitle,
-				label_LogInInsrtuctions, label_AccountSetupInsrtuctions, text_Username,
-				button_Login, text_Password, text_Invitation, button_SetupAccount,
-				button_Quit);
+		// ADDED BY KENNY NGUYEN: VBox children in vertical order
+		root.getChildren().addAll(
+			label_ApplicationTitle,
+			label_OperationalStartTitle,
+			label_LogInInsrtuctions,
+			text_Username,
+			text_Password,
+			button_Login,
+			label_AccountSetupInsrtuctions,
+			text_Invitation,
+			button_SetupAccount,
+			button_Quit
+		);
 	}
 
 
@@ -183,10 +189,11 @@ public class ViewUserLogin {
 	Helper methods to reduce code length
 
 	 *********************************************************************************************/
-
 	/**********
 	 * Private local method to initialize the standard fields for a label
 	 */
+	
+	// NOTE: These are unused since we are not using pane and instead using VBox
 
 	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
 		l.setFont(Font.font(ff, f));
@@ -195,8 +202,8 @@ public class ViewUserLogin {
 		l.setLayoutX(x);
 		l.setLayoutY(y);		
 	}
-
-
+	
+	
 	/**********
 	 * Private local method to initialize the standard fields for a button
 	 * 
@@ -215,7 +222,8 @@ public class ViewUserLogin {
 		b.setLayoutX(x);
 		b.setLayoutY(y);		
 	}
-
+	
+	
 	/**********
 	 * Private local method to initialize the standard fields for a text field
 	 */
@@ -229,3 +237,5 @@ public class ViewUserLogin {
 		t.setEditable(e);
 	}		
 }
+
+

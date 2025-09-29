@@ -1,1 +1,10 @@
-/guiStudent/
+/applicationMain/
+/database/
+/guiAddRemoveRoles/
+/guiAdminHome/
+/guiFirstAdmin/
+/guiMultipleRoleDispatch/
+/guiNewAccount/
+/guiStaff/
+/guiUserLogin/
+/guiUserUpdate/
