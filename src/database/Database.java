@@ -121,9 +121,21 @@ public class Database {
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
 	            + "code VARCHAR(10) PRIMARY KEY, "
 	    		+ "emailAddress VARCHAR(255), "
-	            + "role VARCHAR(10))";
+	            + "role VARCHAR(10),"
+	            + "deadline TIMESTAMP NOT NULL)";
+	    
 	    statement.execute(invitationCodesTable);
-	}
+	    try (Statement st = connection.createStatement()) {
+	        st.execute("ALTER TABLE InvitationCodes ADD COLUMN IF NOT EXISTS deadline TIMESTAMP");
+	        System.out.println("[DEBUG] ensured InvitationCodes.deadline column exists");
+	    } catch (SQLException e) {
+	        System.err.println("[ERROR] while adding deadline column");
+	        e.printStackTrace();
+	    }
+	} 	
+	
+	
+
 
 
 /*******
@@ -218,6 +230,8 @@ public class Database {
 		}
 		
 	}
+	
+	
 	
 /*******
  *  <p> Method: List getUserList() </p>
@@ -370,7 +384,7 @@ public class Database {
 		if (user.getStaffRole()) numberOfRoles++;
 		return numberOfRoles;
 	}	
-
+	
 	
 	/*******
 	 * <p> Method: String generateInvitationCode(String emailAddress, String role) </p>
@@ -390,13 +404,17 @@ public class Database {
 	// Generates a new invitation code and inserts it into the database.
 	public String generateInvitationCode(String emailAddress, String role) {
 	    String code = UUID.randomUUID().toString().substring(0, 6); // Generate a random 6-character code
-	    String query = "INSERT INTO InvitationCodes (code, emailaddress, role) VALUES (?, ?, ?)";
+	    Timestamp deadline = new Timestamp(System.currentTimeMillis() + 24L*60*60*1000);
+	    //String query = "INSERT INTO InvitationCodes (code, emailaddress, role) VALUES (?, ?, ?)";
+	    final String query = "INSERT INTO InvitationCodes (code, emailaddress, role, deadline) VALUES (?,?,?,?)";
 
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 	        pstmt.setString(1, code);
 	        pstmt.setString(2, emailAddress);
 	        pstmt.setString(3, role);
+	        pstmt.setTimestamp(4, deadline);
 	        pstmt.executeUpdate();
+	        
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
@@ -425,6 +443,9 @@ public class Database {
 	    }
 		return 0;
 	}
+	
+	
+
 	
 	
 	/*******

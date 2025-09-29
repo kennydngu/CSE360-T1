@@ -33,18 +33,18 @@ public class ControllerMultipleRoleDispatch {
 					guiMultipleRoleDispatch.ViewMultipleRoleDispatch.theStage, 
 					guiMultipleRoleDispatch.ViewMultipleRoleDispatch.theUser);
 			
-		// See if Role1
+		// See if Student
 		} else if (role.compareTo("Student") == 0) {
 
-			// It is Role1 Role
+			// It is Student
 			guiStudent.ViewStudentHome.displayStudentHome(
 					guiMultipleRoleDispatch.ViewMultipleRoleDispatch.theStage, 
 					guiMultipleRoleDispatch.ViewMultipleRoleDispatch.theUser);
 			
-		// See if Role2
+		// See if Staff
 		} else if (role.compareTo("Staff") == 0) {
 			
-			// It is Role 2 Role
+			// It is Staff
 			guiStaff.ViewStaffHome.displayStaffHome(
 					guiMultipleRoleDispatch.ViewMultipleRoleDispatch.theStage, 
 					guiMultipleRoleDispatch.ViewMultipleRoleDispatch.theUser);
