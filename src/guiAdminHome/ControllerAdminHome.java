@@ -1,6 +1,13 @@
 package guiAdminHome;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import database.Database;
+import javafx.collections.FXCollections;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 /*******
  * <p> Title: GUIAdminHomePage Class. </p>
@@ -89,11 +96,22 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void manageInvitations () {
-		System.out.println("\n*** WARNING ***: Manage Invitations Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("Manage Invitations Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("Manage Invitations Not Yet Implemented");
+		StringBuilder invitationlist = new StringBuilder();
+		int invitationCount = theDatabase.getNumberOfInvitations();
+		if (invitationCount == 0)
+		{
+			invitationlist.append("No outstanding invitation found!");
+		}
+		else {
+			invitationlist.append("Total invitaion: ").append(invitationCount).append("\n");
+			
+			invitationlist.append("Use the database admin to view invitation records");
+		}
+		ViewAdminHome.alertNotImplemented.setTitle("Manage Invitaions");
+		ViewAdminHome.alertNotImplemented.setHeaderText("Invitations Managament");
+		ViewAdminHome.alertNotImplemented.setContentText(invitationlist.toString());
 		ViewAdminHome.alertNotImplemented.showAndWait();
+		
 	}
 	
 	/**********
@@ -104,12 +122,35 @@ public class ControllerAdminHome {
 	 * <p> Description: Protected method that is currently a stub informing the user that
 	 * this function has not yet been implemented. </p>
 	 */
-	protected static void setOnetimePassword () {
-		System.out.println("\n*** WARNING ***: One-Time Password Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("One-Time Password Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("One-Time Password Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
+	protected static void set_one_time_password() {
+	    String selected_user=(String) ViewAdminHome.combobox_SelectUser.getValue();
+	    
+	    if (selected_user==null||selected_user.equals("<Select a User>")) 
+	    {
+	        ViewAdminHome.alertEmailError.setTitle("Selection Error");
+	        ViewAdminHome.alertEmailError.setHeaderText("No User Selected");
+	        ViewAdminHome.alertEmailError.setContentText("Please select a user before generating a one-time password.");
+	        ViewAdminHome.alertEmailError.showAndWait();
+	        return;
+	    }
+	    
+	    String one_time_password="Cse360"+System.currentTimeMillis() % 100000;
+	    
+	    if (theDatabase.update_user_password(selected_user, one_time_password)) 
+	    {
+	        String message = "One-time password has been set for user: " + selected_user + 
+	                        "\nNew Password: " + one_time_password;
+	        ViewAdminHome.alertEmailSent.setTitle("One-Time Password Set");
+	        ViewAdminHome.alertEmailSent.setHeaderText("Password Updated");
+	        ViewAdminHome.alertEmailSent.setContentText(message);
+	        ViewAdminHome.alertEmailSent.showAndWait();
+	    } else 
+	    {
+	        ViewAdminHome.alertEmailError.setTitle("Not able to update the password ");
+	        ViewAdminHome.alertEmailError.setHeaderText("There was a database error. ");
+	        ViewAdminHome.alertEmailError.setContentText("Failed to update password for user: "+selected_user);
+	        ViewAdminHome.alertEmailError.showAndWait();
+	    }
 	}
 	
 	/**********
@@ -121,11 +162,50 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void deleteUser() {
-		System.out.println("\n*** WARNING ***: Delete User Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("Delete User Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("Delete User Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
+
+	    String selectedUser = (String) ViewAdminHome.combobox_SelectUser.getValue();
+
+	    
+
+	    if (selectedUser ==null||selectedUser.equals("<Select a User>")) {
+
+	        ViewAdminHome.alertEmailError.setTitle("Selection Error");
+	        ViewAdminHome.alertEmailError.setHeaderText("No User Selected");
+	        ViewAdminHome.alertEmailError.setContentText("Please select a user to delete.");
+	        ViewAdminHome.alertEmailError.showAndWait();
+	        return;
+	    }
+
+	    if (selectedUser.equals(ViewAdminHome.theUser.getUserName())) 
+	    {
+	    	
+	        ViewAdminHome.alertEmailError.setTitle("Cannot Delete Self");
+	        ViewAdminHome.alertEmailError.setHeaderText("Delete User Error");
+	        ViewAdminHome.alertEmailError.setContentText("You cannot delete your own account while logged in.");
+	        ViewAdminHome.alertEmailError.showAndWait();
+	        return;
+	        }
+	    Alert confirmdelete = new Alert(Alert.AlertType.CONFIRMATION);
+	    confirmdelete.setTitle("Delete user");
+	    confirmdelete.setHeaderText("Are you sure?");
+	    ButtonType yes= new ButtonType("Yes");
+	    ButtonType no = new ButtonType("No");
+	    confirmdelete.getButtonTypes().setAll(yes,no);
+	    Optional<ButtonType> result = confirmdelete.showAndWait();
+	    if (result.isPresent() && result.get() == yes) 
+	    {
+	    	if (theDatabase.delete_user(selectedUser)) {
+	    		ViewAdminHome.alertEmailSent.setContentText("User has been deleted!");
+	    		ViewAdminHome.alertEmailSent.showAndWait();
+	    		List<String> updatedUserList = theDatabase.getUserList();
+	    		ViewAdminHome.combobox_SelectUser.setItems(FXCollections.observableArrayList(updatedUserList));
+	    		ViewAdminHome.combobox_SelectUser.getSelectionModel().select(0);
+	    	}
+	    }
+	    ViewAdminHome.alertNotImplemented.setTitle("Deletion completed");
+	    ViewAdminHome.alertNotImplemented.setHeaderText("Delete User Confirmation");
+	    ViewAdminHome.alertNotImplemented.setContentText("Deleted user " + selectedUser);
+	    ViewAdminHome.alertNotImplemented.showAndWait();
 	}
 	
 	/**********
@@ -137,11 +217,48 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void listUsers() {
-		System.out.println("\n*** WARNING ***: List Users Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("List User Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("List Users Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
+	    StringBuilder usersList = new StringBuilder();
+
+	    List<String> users = theDatabase.getUserList();
+	    
+	    if (users.size() <= 1) {
+	        usersList.append("No users found in the system.");
+	    } else {
+	        usersList.append("Total users: ").append(users.size() - 1).append("\n\n");
+	        
+	        for (String username : users) {
+	            if (!username.equals("<Select a User>")) {
+	                if (theDatabase.getUserAccountDetails(username)) {
+	                    usersList.append("Username: ").append(username).append("\n");
+	                    usersList.append("Name: ").append(theDatabase.getCurrentFirstName());
+	                    String middleName = theDatabase.getCurrentMiddleName();
+	                    if (middleName != null && !middleName.trim().isEmpty()) {
+	                        usersList.append(" ").append(middleName);
+	                    }
+	                    usersList.append(" ").append(theDatabase.getCurrentLastName()).append("\n");
+	                    usersList.append("Email: ").append(theDatabase.getCurrentEmailAddress()).append("\n");
+	                    usersList.append("Roles: ");
+	                    List<String> rolesList = new ArrayList<>();
+	                    if (theDatabase.getCurrentAdminRole()) rolesList.add("Admin");
+	                    if (theDatabase.getCurrentStudentRole()) rolesList.add("Student");
+	                    if (theDatabase.getCurrentStaffRole()) rolesList.add("Staff");
+	                    
+	                    if (rolesList.isEmpty()) {
+	                        usersList.append("None");
+	                    } else {
+	                        usersList.append(String.join(", ", rolesList));
+	                    }
+	                    
+	                    usersList.append("\n\n");
+	                }
+	            }
+	        }
+	    }
+	    
+	    ViewAdminHome.alertNotImplemented.setTitle("User List");
+	    ViewAdminHome.alertNotImplemented.setHeaderText("All System Users");
+	    ViewAdminHome.alertNotImplemented.setContentText(usersList.toString());
+	    ViewAdminHome.alertNotImplemented.showAndWait();
 	}
 	
 	/**********

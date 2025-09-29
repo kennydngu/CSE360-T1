@@ -87,6 +87,8 @@ public class ViewAdminHome {
 	protected static Label label_InvitationEmailAddress = new Label("Email Address");
 	protected static TextField text_InvitationEmailAddress = new TextField();
 	protected static ComboBox <String> combobox_SelectRole = new ComboBox <String>();
+	protected static Label label_SelectUser = new Label("Select User:"); 
+	protected static ComboBox<String> combobox_SelectUser = new ComboBox<String>();
 	protected static String [] roles = {"Admin", "Student", "Staff"};
 	protected static Button button_SendInvitation = new Button("Send Invitation");
 	protected static Alert alertEmailError = new Alert(AlertType.INFORMATION);
@@ -222,10 +224,7 @@ public class ViewAdminHome {
 	
 		// GUI Area 3
 		setupLabelUI(label_Invitations, "Arial", 20, width, Pos.BASELINE_LEFT, 20, 175);
-	
-		setupLabelUI(label_InvitationEmailAddress, "Arial", 16, width, Pos.BASELINE_LEFT,
-		20, 210);
-	
+		setupLabelUI(label_InvitationEmailAddress, "Arial", 16, width, Pos.BASELINE_LEFT, 20, 210);
 		setupTextUI(text_InvitationEmailAddress, "Arial", 16, 360, Pos.BASELINE_LEFT,
 		130, 205, true);
 	
@@ -247,10 +246,12 @@ public class ViewAdminHome {
 		setupButtonUI(button_ManageInvitations, "Dialog", 16, 250, Pos.CENTER, 20, 270);
 		button_ManageInvitations.setOnAction((event) -> 
 			{ControllerAdminHome.manageInvitations(); });
+		
+		
 	
 		setupButtonUI(button_SetOnetimePassword, "Dialog", 16, 250, Pos.CENTER, 20, 320);
 		button_SetOnetimePassword.setOnAction((event) -> 
-			{ControllerAdminHome.setOnetimePassword(); });
+			{ControllerAdminHome.set_one_time_password(); });
 
 		setupButtonUI(button_DeleteUser, "Dialog", 16, 250, Pos.CENTER, 20, 370);
 		button_DeleteUser.setOnAction((event) -> {ControllerAdminHome.deleteUser(); });
@@ -260,6 +261,18 @@ public class ViewAdminHome {
 
 		setupButtonUI(button_AddRemoveRoles, "Dialog", 16, 250, Pos.CENTER, 20, 470);
 		button_AddRemoveRoles.setOnAction((event) -> {ControllerAdminHome.addRemoveRoles(); });
+		
+		
+		
+		setupLabelUI(label_SelectUser, "Arial", 16, 200, Pos.BASELINE_LEFT, 300, 270); 
+
+		setupComboBoxUI(combobox_SelectUser, "Dialog", 16, 200, 300, 290); 
+		
+		List<String> userList = theDatabase.getUserList(); 
+
+		combobox_SelectUser.setItems(FXCollections.observableArrayList(userList)); 
+
+		combobox_SelectUser.getSelectionModel().select(0);
 		
 		// GUI Area 5
 		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
@@ -284,6 +297,8 @@ public class ViewAdminHome {
     		button_ListUsers,
     		button_AddRemoveRoles,
     		line_Separator4, 
+    		label_SelectUser, 
+    		combobox_SelectUser,
     		button_Logout,
     		button_Quit
     		);
