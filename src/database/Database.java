@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class Database {
 
 	// JDBC driver name and database URL 
 	static final String JDBC_DRIVER = "org.h2.Driver";   
-	static final String DB_URL = "jdbc:h2:~/FoundationDatabase";  
+	static final String DB_URL = "jdbc:h2:~/FoundationDatabase" ;  
 
 	//  Database credentials 
 	static final String USER = "sa"; 
@@ -85,7 +86,7 @@ public class Database {
 			Class.forName(JDBC_DRIVER); // Load the JDBC driver
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);
 			statement = connection.createStatement(); 
-			// You can use this command to clear the database and restart from fresh.
+			//You can use this command to clear the database and restart from fresh.
 			//statement.execute("DROP ALL OBJECTS");
 
 			createTables();  // Create the necessary tables if they don't exist
@@ -121,7 +122,8 @@ public class Database {
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
 	            + "code VARCHAR(10) PRIMARY KEY, "
 	    		+ "emailAddress VARCHAR(255), "
-	            + "role VARCHAR(10))";
+	            + "role VARCHAR(10), "
+	    		+ "deadline TIMESTAMP)";   
 	    statement.execute(invitationCodesTable);
 	}
 
@@ -390,12 +392,12 @@ public class Database {
 	// Generates a new invitation code and inserts it into the database.
 	public String generateInvitationCode(String emailAddress, String role) {
 	    String code = UUID.randomUUID().toString().substring(0, 6); // Generate a random 6-character code
-	    String query = "INSERT INTO InvitationCodes (code, emailaddress, role) VALUES (?, ?, ?)";
-
+	    String query = "INSERT INTO InvitationCodes (code, emailaddress, role, deadline) VALUES (?, ?, ?, ?)";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 	        pstmt.setString(1, code);
 	        pstmt.setString(2, emailAddress);
 	        pstmt.setString(3, role);
+	        pstmt.setString(4, LocalDateTime.now().plusDays(1).toString());
 	        pstmt.executeUpdate();
 	    } catch (SQLException e) {
 	        e.printStackTrace();
@@ -415,14 +417,14 @@ public class Database {
 	// Number of invitations in the database
 	public int getNumberOfInvitations() {
 		String query = "SELECT COUNT(*) AS count FROM InvitationCodes";
-		try {
-			ResultSet resultSet = statement.executeQuery(query);
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			ResultSet resultSet = pstmt.executeQuery();
 			if (resultSet.next()) {
-				return resultSet.getInt("count");
+			return resultSet.getInt("count");
 			}
-		} catch  (SQLException e) {
-	        e.printStackTrace();
-	    }
+			} catch (SQLException e) {
+			e.printStackTrace();
+			}
 		return 0;
 	}
 	
@@ -506,6 +508,19 @@ public class Database {
 		return "";
 	}
 	
+	public String getDealineGivenAnInvitationCode(String code) {
+	    String query = "SELECT * FROM InvitationCodes WHERE code = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, code);
+	        ResultSet rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	            return rs.getString("deadline");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return "";
+	}
 	
 	/*******
 	 * <p> Method: void removeInvitationAfterUse(String code) </p>
@@ -903,6 +918,70 @@ public class Database {
 		return false;
 	}
 	
+	public boolean update_user_password(String username, String new_password) {
+	    if (connection == null) {
+	        System.err.println("database connection failed");
+	        return false;
+	    }
+	    
+	    if (!doesUserExist(username)) {
+	        return false;
+	    }
+	    
+	    String query = "UPDATE userDB SET password = ? WHERE userName = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, new_password);
+	        pstmt.setString(2, username);
+	        int rowsAffected = pstmt.executeUpdate();
+	        
+	        if (username.equals(currentUsername)) {
+	            currentPassword = new_password;
+	        }
+	        
+	        return rowsAffected > 0;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+	public boolean delete_user(String username) {
+	    if (connection == null) {
+	        System.err.println("database connection failed");
+	        return false;
+	    }
+	    
+	    if (!doesUserExist(username)) {
+	        return false;
+	    }
+	    
+	    String query = "DELETE FROM userDB WHERE userName = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, username.trim());
+	    	int rowsAffected = pstmt.executeUpdate();
+
+	        if (username.equals(currentUsername)) {
+	            clear_user_data();
+	        }
+	        
+	        return rowsAffected > 0;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+
+	private void clear_user_data() {
+	    currentUsername = null;
+	    currentPassword = null;
+	    currentFirstName = null;
+	    currentMiddleName = null;
+	    currentLastName = null;
+	    currentPreferredFirstName = null;
+	    currentEmailAddress = null;
+	    currentAdminRole = false;
+	    currentStudentRole = false;
+	    currentStaffRole = false;
+	}
 	
 	// Attribute getters for the current user
 	/*******
@@ -1060,3 +1139,4 @@ public class Database {
 		} 
 	}
 }
+
