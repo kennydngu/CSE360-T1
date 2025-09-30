@@ -1,99 +1,143 @@
 package guiUserLogin;
 
+import guiTools.BaseView;                      
 import javafx.geometry.Pos;
-import javafx.geometry.Insets;    // ADDED BY KENNY NGUYEN: Needed for VBox padding
-import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;  // ADDED BY KENNY NGUYEN: VBox for vertical alignment
-import javafx.scene.text.Font;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
 
 /*******
  * <p> Title: GUIStartupPage Class. </p>
- * 
+ *
  * <p> Description: The Java/FX-based System Startup Page.</p>
- * 
+ *
  * <p> Copyright: Lynn Robert Carter © 2025 </p>
- * 
+ *
  * @author Lynn Robert Carter
- * 
- * @version 1.00		2025-04-20 Initial version
- *  
+ *
+ * @version 1.00  2025-04-20 Initial version
+ *
  */
 
-public class ViewUserLogin {
+public class ViewUserLogin extends BaseView {
 
-	/*-********************************************************************************************
+    /*-********************************************************************************************
+     * Attributes
+     *********************************************************************************************/
 
-	Attributes
+    // These are the application values required by the user interface
+    private static final double WIN_W = applicationMain.FoundationsMain.WINDOW_WIDTH;
+    private static final double WIN_H = applicationMain.FoundationsMain.WINDOW_HEIGHT;
 
-	 *********************************************************************************************/
+    private static final Label label_ApplicationTitle      = new Label("Foundation Application Startup Page");
+    private static final Label label_OperationalStartTitle = new Label("Log In or Invited User Account Setup ");
+    private static final Label label_LogInInsrtuctions     = new Label("Enter your user name and password and then click on the LogIn button");
 
-	// These are the application values required by the user interface
+    // Kept static so ControllerUserLogin can access them as before
+    public  static final TextField     text_Username  = new TextField();
+    public  static final PasswordField text_Password  = new PasswordField();
+    private static final Button        button_Login   = new Button("Log In");
 
-	private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
-	private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT;
+    private static final Label label_AccountSetupInsrtuctions = new Label("No account? Enter your invitation code and click on the Account Setup button");
+    public  static final TextField text_Invitation   = new TextField();
+    private static final Button button_SetupAccount = new Button("Setup Account");
 
-	private static Label label_ApplicationTitle = new Label("Foundation Application Startup Page");
+    public  static final Alert alertUsernamePasswordError = new Alert(Alert.AlertType.INFORMATION);
 
-	// This set is for all subsequent starts of the system
-	private static Label label_OperationalStartTitle = new Label("Log In or Invited User Account Setup ");
-	private static Label label_LogInInsrtuctions = new Label("Enter your user name and password and "+	
-			"then click on the LogIn button");
-	protected static Alert alertUsernamePasswordError = new Alert(AlertType.INFORMATION);
+    /*-********************************************************************************************
+     * Constructor (routes through BaseView for layout + theme)
+     *********************************************************************************************/
 
+    // ADDED BY KENNY: route this view through BaseView 
+    public ViewUserLogin(Stage stage) {
+        super(stage, WIN_W, WIN_H);
 
-	//	private User user;
-	protected static TextField text_Username = new TextField();
-	protected static PasswordField text_Password = new PasswordField();
-	private static Button button_Login = new Button("Log In");	
+        // ADDED BY KENNY: add CSS classes so the style is controlled globally
+        label_ApplicationTitle.getStyleClass().add("title");
+        label_OperationalStartTitle.getStyleClass().add("subtitle");
+        label_LogInInsrtuctions.getStyleClass().add("form-label");
+        label_AccountSetupInsrtuctions.getStyleClass().add("form-label");
 
-	private static Label label_AccountSetupInsrtuctions = new Label("No account? "+	
-			"Enter your invitation code and click on the Account Setup button");
-	private static TextField text_Invitation = new TextField();
-	private static Button button_SetupAccount = new Button("Setup Account");
+        text_Username.getStyleClass().add("text-field");
+        text_Password.getStyleClass().add("password-field");
+        text_Invitation.getStyleClass().add("text-field");
 
-	private static Button button_Quit = new Button("Quit");
+        button_Login.getStyleClass().add("primary-btn");
+        button_SetupAccount.getStyleClass().add("primary-btn");
 
-	private static Stage theStage;	
-	private static Scene theUserLoginScene = null;	
+        // ADDED BY KENNY: prompts and reasonable max widths so controls don’t stretch full screen
+        text_Username.setPromptText("Enter Username");
+        text_Password.setPromptText("Enter Password");
+        text_Invitation.setPromptText("Enter Invitation Code");
 
+        text_Username.setMaxWidth(360);
+        text_Password.setMaxWidth(360);
+        text_Invitation.setMaxWidth(360);
+        button_Login.setMaxWidth(160);
+        button_SetupAccount.setMaxWidth(180);
 
-	private static ViewUserLogin theView = null;	//	private static guiUserLogin.ControllerUserLogin theController;
+        alertUsernamePasswordError.setTitle("Invalid username/password!");
+        alertUsernamePasswordError.setHeaderText(null);
 
+        // ADDED BY KENNY: wire actions to the existing controller
+        button_Login.setOnAction(e -> ControllerUserLogin.doLogin(stage));
+        button_SetupAccount.setOnAction(e -> ControllerUserLogin.doSetupAccount(stage, text_Invitation.getText()));
+    }
 
-	/*-********************************************************************************************
+    /*-********************************************************************************************
+     * BaseView hooks
+     *********************************************************************************************/
 
-	Constructor
+    /** Build only the center content; BaseView handles scene, theme, and Quit placement. */
+    // ADDED BY KENNY: modern stacked layout with compact rows
+    @Override
+    protected Node buildContent() {
+        VBox header = new VBox(10, label_ApplicationTitle, label_OperationalStartTitle);
+        header.setAlignment(Pos.CENTER);
 
-	 *********************************************************************************************/
+        HBox userRow   = new HBox(12, text_Username, button_Login);
+        userRow.setAlignment(Pos.CENTER);
 
-	public static void displayUserLogin(Stage ps) {
-		
-		// Establish the references to the GUI. There is no current user yet.
-		theStage = ps;
-		
-		// If not yet established, populate the static aspects of the GUI
-		if (theView == null) theView = new ViewUserLogin();
-		
-		// Populate the dynamic aspects of the GUI with the data from the user and the current
-		// state of the system.		
-		text_Username.setText("");		// Reset the username and password from the last use
-		text_Password.setText("");
-		text_Invitation.setText("");	// Same for the invitation code
+        VBox loginBox  = new VBox(10, label_LogInInsrtuctions, userRow, text_Password);
+        loginBox.setAlignment(Pos.CENTER);
 
-		// Set the title for the window, display the page, and wait for the Admin to do something
-		theStage.setTitle("CSE 360 Foundation Code: User Login Page");		
-		theStage.setScene(theUserLoginScene);
-		theStage.show();
-	}
+        HBox inviteRow = new HBox(12, text_Invitation, button_SetupAccount);
+        inviteRow.setAlignment(Pos.CENTER);
+
+        VBox inviteBox = new VBox(10, label_AccountSetupInsrtuctions, inviteRow);
+        inviteBox.setAlignment(Pos.CENTER);
+
+        VBox content = new VBox(16, header, loginBox, inviteBox);
+        content.setAlignment(Pos.CENTER);
+        return content;
+    }
+
+    /** Provide the Quit behavior for this screen (BaseView calls this). */
+    // ADDED BY KENNY: delegate quit to the existing controller
+    @Override
+    protected void onQuit() {
+        ControllerUserLogin.performQuit();
+    }
+
+    /*-********************************************************************************************
+     * Compatibility entry point (keeps old call sites working)
+     *********************************************************************************************/
+
+    public static void displayUserLogin(Stage stage) {
+        // Reset per previous behavior
+        text_Username.setText("");
+        text_Password.setText("");
+        text_Invitation.setText("");
+
+        new ViewUserLogin(stage).show();
+    }
+}
 
 	/**********
 	 * <p> Method: ViewUserLoginPage() </p>
@@ -117,71 +161,6 @@ public class ViewUserLogin {
 	 * @param db specifies the Database to be used by this GUI and it's methods
 	 * 
 	 */
-	private ViewUserLogin() {
-
-		// ADDED BY KENNY NGUYEN: VBox for vertical alignment
-		VBox root = new VBox(15);
-		root.setAlignment(Pos.CENTER);
-		root.setPadding(new Insets(20));
-		root.getStyleClass().add("page-root");
-		
-		// ADDED BY KENNY NGUYEN: Set limiters for width so they do not stretch across the page.
-		text_Username.setMaxWidth(500);
-		text_Password.setMaxWidth(500);
-		text_Invitation.setMaxWidth(500);
-		button_Login.setMaxWidth(150);
-		button_SetupAccount.setMaxWidth(150);
-		button_Quit.setMaxWidth(50);
-
-		theUserLoginScene = new Scene(root, width, height);
-		theUserLoginScene.getStylesheets().add(ViewUserLogin.class.getResource("/styles/app.css").toExternalForm());
-		
-		label_ApplicationTitle.getStyleClass().add("title");
-		label_OperationalStartTitle.getStyleClass().add("subtitle");
-
-		label_LogInInsrtuctions.getStyleClass().add("form-label");
-		label_AccountSetupInsrtuctions.getStyleClass().add("form-label");
-
-		text_Username.getStyleClass().add("text-field");
-		text_Password.getStyleClass().add("password-field");
-		text_Invitation.getStyleClass().add("text-field");
-
-		button_Login.getStyleClass().add("primary-btn");
-		button_Quit.setId("quitBtn");
-		
-		// Existing user log in portion of the page
-		text_Username.setPromptText("Enter Username");
-		text_Password.setPromptText("Enter Password");
-
-		// Set up the Log In button
-		button_Login.setOnAction((event) -> {ControllerUserLogin.doLogin(theStage); });
-		alertUsernamePasswordError.setTitle("Invalid username/password!");
-		alertUsernamePasswordError.setHeaderText(null);
-
-		// Set up the Setup Account button
-		text_Invitation.setPromptText("Enter Invitation Code");
-		button_SetupAccount.setOnAction((event) -> {
-			System.out.println("**** Calling doSetupAccount");
-			ControllerUserLogin.doSetupAccount(theStage, text_Invitation.getText());
-		});
-
-		// Set up the Quit button  
-		button_Quit.setOnAction((event) -> {ControllerUserLogin.performQuit(); });
-
-		// ADDED BY KENNY NGUYEN: VBox children in vertical order
-		root.getChildren().addAll(
-			label_ApplicationTitle,
-			label_OperationalStartTitle,
-			label_LogInInsrtuctions,
-			text_Username,
-			text_Password,
-			button_Login,
-			label_AccountSetupInsrtuctions,
-			text_Invitation,
-			button_SetupAccount,
-			button_Quit
-		);
-	}
 
 
 	/*-********************************************************************************************
@@ -194,8 +173,9 @@ public class ViewUserLogin {
 	 */
 	
 	// NOTE: These are unused since we are not using pane and instead using VBox
-
-	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
+	
+	
+	/**********	private void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
 		l.setFont(Font.font(ff, f));
 		l.setMinWidth(w);
 		l.setAlignment(p);
@@ -204,6 +184,7 @@ public class ViewUserLogin {
 	}
 	
 	
+
 	/**********
 	 * Private local method to initialize the standard fields for a button
 	 * 
@@ -214,7 +195,7 @@ public class ViewUserLogin {
 	 * @param p		The alignment (e.g. left, centered, or right)
 	 * @param x		The location from the left edge (x axis)
 	 * @param y		The location from the top (y axis)
-	 */
+	 
 	private void setupButtonUI(Button b, String ff, double f, double w, Pos p, double x, double y){
 		b.setFont(Font.font(ff, f));
 		b.setMinWidth(w);
@@ -226,7 +207,7 @@ public class ViewUserLogin {
 	
 	/**********
 	 * Private local method to initialize the standard fields for a text field
-	 */
+	 
 	private void setupTextUI(TextField t, String ff, double f, double w, Pos p, double x, double y, boolean e){
 		t.setFont(Font.font(ff, f));
 		t.setMinWidth(w);
@@ -235,7 +216,8 @@ public class ViewUserLogin {
 		t.setLayoutX(x);
 		t.setLayoutY(y);		
 		t.setEditable(e);
-	}		
-}
+	}	*/
+
+
 
 

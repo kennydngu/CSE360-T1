@@ -3,6 +3,7 @@ package guiUserUpdate;
 import java.util.Optional;
 
 import database.Database;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -255,45 +256,33 @@ public class ViewUserUpdate {
         setupLabelUI(label_Password, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 150);
         setupLabelUI(label_CurrentPassword, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 150);
         setupButtonUI(button_UpdatePassword, "Dialog", 18, 275, Pos.CENTER, 500, 143);
+        button_UpdatePassword.setOnAction(e ->
+            ControllerUserUpdate.handleUpdatePassword(theStage, theUser, label_CurrentPassword)
+        );
         
         // First Name
         setupLabelUI(label_FirstName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 200);
         setupLabelUI(label_CurrentFirstName, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 200);
         setupButtonUI(button_UpdateFirstName, "Dialog", 18, 275, Pos.CENTER, 500, 193);
-        button_UpdateFirstName.setOnAction((event) -> {result = dialogUpdateFirstName.showAndWait();
-        	result.ifPresent(name -> theDatabase.updateFirstName(theUser.getUserName(), result.get()));
-        	theDatabase.getUserAccountDetails(theUser.getUserName());
-         	String newName = theDatabase.getCurrentFirstName();
-           	theUser.setFirstName(newName);
-        	if (newName == null || newName.length() < 1)label_CurrentFirstName.setText("<none>");
-        	else label_CurrentFirstName.setText(newName);
-         	});
+        button_UpdateFirstName.setOnAction(e ->
+        ControllerUserUpdate.handleUpdateName(theStage, theUser, dialogUpdateFirstName, label_CurrentFirstName, "First")
+        		);
                
         // Middle Name
         setupLabelUI(label_MiddleName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 250);
         setupLabelUI(label_CurrentMiddleName, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 250);
         setupButtonUI(button_UpdateMiddleName, "Dialog", 18, 275, Pos.CENTER, 500, 243);
-        button_UpdateMiddleName.setOnAction((event) -> {result = dialogUpdateMiddleName.showAndWait();
-    		result.ifPresent(name -> theDatabase.updateMiddleName(theUser.getUserName(), result.get()));
-    		theDatabase.getUserAccountDetails(theUser.getUserName());
-    		String newName = theDatabase.getCurrentMiddleName();
-           	theUser.setMiddleName(newName);
-        	if (newName == null || newName.length() < 1)label_CurrentMiddleName.setText("<none>");
-        	else label_CurrentMiddleName.setText(newName);
-    		});
+        button_UpdateMiddleName.setOnAction(e ->
+        ControllerUserUpdate.handleUpdateName(theStage, theUser, dialogUpdateMiddleName, label_CurrentMiddleName, "Middle")
+        		);
         
         // Last Name
         setupLabelUI(label_LastName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 300);
         setupLabelUI(label_CurrentLastName, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 300);
         setupButtonUI(button_UpdateLastName, "Dialog", 18, 275, Pos.CENTER, 500, 293);
-        button_UpdateLastName.setOnAction((event) -> {result = dialogUpdateLastName.showAndWait();
-    		result.ifPresent(name -> theDatabase.updateLastName(theUser.getUserName(), result.get()));
-    		theDatabase.getUserAccountDetails(theUser.getUserName());
-    		String newName = theDatabase.getCurrentLastName();
-           	theUser.setLastName(newName);
-      	if (newName == null || newName.length() < 1)label_CurrentLastName.setText("<none>");
-        	else label_CurrentLastName.setText(newName);
-    		});
+        button_UpdateLastName.setOnAction(e ->
+        ControllerUserUpdate.handleUpdateName(theStage, theUser, dialogUpdateLastName, label_CurrentLastName, "Last")
+        		);
         
         // Preferred First Name
         setupLabelUI(label_PreferredFirstName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 
@@ -301,29 +290,17 @@ public class ViewUserUpdate {
         setupLabelUI(label_CurrentPreferredFirstName, "Arial", 18, 260, Pos.BASELINE_LEFT, 
         		200, 350);
         setupButtonUI(button_UpdatePreferredFirstName, "Dialog", 18, 275, Pos.CENTER, 500, 343);
-        button_UpdatePreferredFirstName.setOnAction((event) -> 
-        	{result = dialogUpdatePreferredFirstName.showAndWait();
-    		result.ifPresent(name -> 
-    		theDatabase.updatePreferredFirstName(theUser.getUserName(), result.get()));
-    		theDatabase.getUserAccountDetails(theUser.getUserName());
-    		String newName = theDatabase.getCurrentPreferredFirstName();
-           	theUser.setPreferredFirstName(newName);
-         	if (newName == null || newName.length() < 1)label_CurrentPreferredFirstName.setText("<none>");
-        	else label_CurrentPreferredFirstName.setText(newName);
-     		});
+        button_UpdatePreferredFirstName.setOnAction(e ->
+        ControllerUserUpdate.handleUpdateName(theStage, theUser, dialogUpdatePreferredFirstName, label_CurrentPreferredFirstName, "Preferred First")
+        		);
         
         // Email Address
         setupLabelUI(label_EmailAddress, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 400);
         setupLabelUI(label_CurrentEmailAddress, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 400);
         setupButtonUI(button_UpdateEmailAddress, "Dialog", 18, 275, Pos.CENTER, 500, 393);
-        button_UpdateEmailAddress.setOnAction((event) -> {result = dialogUpdateEmailAddresss.showAndWait();
-    		result.ifPresent(name -> theDatabase.updateEmailAddress(theUser.getUserName(), result.get()));
-    		theDatabase.getUserAccountDetails(theUser.getUserName());
-    		String newEmail = theDatabase.getCurrentEmailAddress();
-           	theUser.setEmailAddress(newEmail);
-        	if (newEmail == null || newEmail.length() < 1)label_CurrentEmailAddress.setText("<none>");
-        	else label_CurrentEmailAddress.setText(newEmail);
- 			});
+        button_UpdateEmailAddress.setOnAction(e ->
+        ControllerUserUpdate.handleUpdateEmail(theStage, theUser, dialogUpdateEmailAddresss, label_CurrentEmailAddress)
+        		);
         
         // Set up the button to proceed to this user's home page
         setupButtonUI(button_ProceedToUserHomePage, "Dialog", 18, 300, 

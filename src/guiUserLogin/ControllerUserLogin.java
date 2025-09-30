@@ -59,6 +59,7 @@ public class ControllerUserLogin {
     		ViewUserLogin.alertUsernamePasswordError.showAndWait();
     		return;
     	}
+    	
 		System.out.println("*** Password is valid for this user");
 		
 		// Establish this user's details
@@ -124,7 +125,7 @@ public class ControllerUserLogin {
 	 * of crashed.)
 	 * 
 	 */	
-	protected static void performQuit() {
+	public static void performQuit() {
 		System.out.println("Perform Quit");
 		System.exit(0);
 	}	
