@@ -272,8 +272,7 @@ public class ControllerAdminHome {
 	 * Admin.</p>
 	 */
 	protected static void addRemoveRoles() {
-		guiAddRemoveRoles.ViewAddRemoveRoles.displayAddRemoveRoles(ViewAdminHome.theStage, 
-				ViewAdminHome.theUser);
+		 guiAddRemoveRoles.ViewAddRemoveRoles.displayAddRemoveRoles(ViewAdminHome.theView.getStage(), ViewAdminHome.theUser);
 	}
 	
 	/**********
@@ -307,7 +306,7 @@ public class ControllerAdminHome {
 	 * login page for future use.</p>
 	 */
 	protected static void performLogout() {
-		guiUserLogin.ViewUserLogin.displayUserLogin(ViewAdminHome.theStage);
+		guiUserLogin.ViewUserLogin.displayUserLogin(ViewAdminHome.theView.getStage());
 	}
 	
 	/**********

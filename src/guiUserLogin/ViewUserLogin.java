@@ -27,11 +27,9 @@ import javafx.stage.Stage;
 
 public class ViewUserLogin extends BaseView {
 
-    /*-********************************************************************************************
-     * Attributes
-     *********************************************************************************************/
+  
 
-    // These are the application values required by the user interface
+    // Application variables required by interface
     private static final double WIN_W = applicationMain.FoundationsMain.WINDOW_WIDTH;
     private static final double WIN_H = applicationMain.FoundationsMain.WINDOW_HEIGHT;
 
@@ -39,7 +37,7 @@ public class ViewUserLogin extends BaseView {
     private static final Label label_OperationalStartTitle = new Label("Log In or Invited User Account Setup ");
     private static final Label label_LogInInsrtuctions     = new Label("Enter your user name and password and then click on the LogIn button");
 
-    // Kept static so ControllerUserLogin can access them as before
+    // Keep static so it is accessible by controller
     public  static final TextField     text_Username  = new TextField();
     public  static final PasswordField text_Password  = new PasswordField();
     private static final Button        button_Login   = new Button("Log In");
@@ -50,11 +48,9 @@ public class ViewUserLogin extends BaseView {
 
     public  static final Alert alertUsernamePasswordError = new Alert(Alert.AlertType.INFORMATION);
 
-    /*-********************************************************************************************
-     * Constructor (routes through BaseView for layout + theme)
-     *********************************************************************************************/
+  
 
-    // ADDED BY KENNY: route this view through BaseView 
+    // ADDED BY KENNY: use BaseView for easier implementation
     public ViewUserLogin(Stage stage) {
         super(stage, WIN_W, WIN_H);
 
@@ -79,8 +75,8 @@ public class ViewUserLogin extends BaseView {
         text_Username.setMaxWidth(360);
         text_Password.setMaxWidth(360);
         text_Invitation.setMaxWidth(360);
-        button_Login.setMaxWidth(160);
-        button_SetupAccount.setMaxWidth(180);
+        button_Login.setMaxWidth(360);
+        button_SetupAccount.setMaxWidth(360);
 
         alertUsernamePasswordError.setTitle("Invalid username/password!");
         alertUsernamePasswordError.setHeaderText(null);
@@ -90,27 +86,21 @@ public class ViewUserLogin extends BaseView {
         button_SetupAccount.setOnAction(e -> ControllerUserLogin.doSetupAccount(stage, text_Invitation.getText()));
     }
 
-    /*-********************************************************************************************
-     * BaseView hooks
-     *********************************************************************************************/
-
-    /** Build only the center content; BaseView handles scene, theme, and Quit placement. */
+ 
     // ADDED BY KENNY: modern stacked layout with compact rows
     @Override
     protected Node buildContent() {
         VBox header = new VBox(10, label_ApplicationTitle, label_OperationalStartTitle);
         header.setAlignment(Pos.CENTER);
 
-        HBox userRow   = new HBox(12, text_Username, button_Login);
-        userRow.setAlignment(Pos.CENTER);
 
-        VBox loginBox  = new VBox(10, label_LogInInsrtuctions, userRow, text_Password);
+        VBox loginBox  = new VBox(10, label_LogInInsrtuctions, text_Username, text_Password, button_Login );
         loginBox.setAlignment(Pos.CENTER);
+        
 
-        HBox inviteRow = new HBox(12, text_Invitation, button_SetupAccount);
-        inviteRow.setAlignment(Pos.CENTER);
+       
 
-        VBox inviteBox = new VBox(10, label_AccountSetupInsrtuctions, inviteRow);
+        VBox inviteBox = new VBox(10, label_AccountSetupInsrtuctions, text_Invitation, button_SetupAccount);
         inviteBox.setAlignment(Pos.CENTER);
 
         VBox content = new VBox(16, header, loginBox, inviteBox);
@@ -118,7 +108,6 @@ public class ViewUserLogin extends BaseView {
         return content;
     }
 
-    /** Provide the Quit behavior for this screen (BaseView calls this). */
     // ADDED BY KENNY: delegate quit to the existing controller
     @Override
     protected void onQuit() {
@@ -136,6 +125,11 @@ public class ViewUserLogin extends BaseView {
         text_Invitation.setText("");
 
         new ViewUserLogin(stage).show();
+    }
+    
+    // DO NOT SHOW LOGOUT BUTTON
+    protected boolean showLogout() {
+    	return false;
     }
 }
 

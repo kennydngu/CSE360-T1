@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 
 public abstract class BaseView {
 
-    // ADDED BY KENNY NGUYEN: keep stage here so show() can set scene
+    // keep stage here so show() can set scene
     protected final Stage stage;
     protected final double width;
     protected final double height;
@@ -21,8 +21,10 @@ public abstract class BaseView {
     protected final BorderPane root;
     protected final Scene scene;
     protected final Button quitButton;
+	protected final Button logoutButton;
+	
 
-    // ADDED BY KENNY NGUYEN: constructor
+    // constructor
     public BaseView(Stage stage, double width, double height) {
         this.stage = stage;
         this.width = width;
@@ -31,40 +33,58 @@ public abstract class BaseView {
         this.root = new BorderPane();
         this.scene = new Scene(root, width, height);
 
-        // ADDED BY KENNY NGUYEN: global stylesheet + dark background k
+        // global stylesheet + dark background k
         scene.getStylesheets().add(BaseView.class.getResource("/styles/app.css").toExternalForm());
         root.getStyleClass().add("page-root");
 
-        // ADDED BY KENNY NGUYEN: Quit button
+        // Quit button
         this.quitButton = new Button("Quit");
+        this.logoutButton = new Button("Logout");
         quitButton.setId("quitBtn");
-        HBox quitBox = new HBox(quitButton);
-        quitBox.setAlignment(Pos.BOTTOM_LEFT);
-        quitBox.setPadding(new Insets(10));
-        root.setBottom(quitBox);
         quitButton.setOnAction(e -> onQuit());
+        logoutButton.setOnAction(e -> onLogout());
+        
 
-        // ADDED BY KENNY NGUYEN: ask child for center content
+        HBox footer = new HBox(10);
+        footer.setAlignment(Pos.BOTTOM_LEFT);
+        footer.setPadding(new Insets(10));
+        
+        if (showLogout()) {
+            footer.getChildren().addAll(logoutButton, quitButton);
+        } else {
+            footer.getChildren().add(quitButton);
+        }
+        root.setBottom(footer);
+
+        // Ask subclass for center content
         root.setCenter(buildContent());
     }
+      
 
-    /** Child returns the main content that goes in the center */
+    // child builds the content 
     protected abstract Node buildContent();
+    
+    // Choose whether or not logout button will be shown by default yes if no the view will update this to false
+    protected boolean showLogout() { return true; }
 
-    /** ADDED BY KENNY NGUYEN: overridden quit behavior*/
-    protected void onQuit() { /* no-op by default */ }
+    // child decides what happens on quit
+    protected void onQuit() { }
+    protected void onLogout() { }
+    
 
-    /** ADDED BY KENNY NGUYEN: expose scene if needed. */
+
+    // method to expose scene
     public Scene getScene() { return scene; }
+    public Stage getStage() { return stage; }
 
-    /** ADDED BY KENNY NGUYEN: show this view on its stage */
+    // show view
     public void show() {
         stage.setScene(scene);
         stage.show();
     }
 
-   // Helpers for the layout
-   // Create a centered VBox
+   // helpers for the layout
+   // create a centered VBox
     protected VBox vbox(double spacing, Insets padding, Node... children) {
         VBox v = new VBox(spacing, children);
         v.setAlignment(Pos.CENTER);
@@ -72,7 +92,7 @@ public abstract class BaseView {
         return v;
     }
 
-    // Create a HBOX that is centered
+    // create a HBOX that is centered
     protected HBox hbox(double spacing, Insets padding, Node... children) {
         HBox h = new HBox(spacing, children);
         h.setAlignment(Pos.CENTER);

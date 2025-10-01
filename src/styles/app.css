@@ -3,7 +3,7 @@
   -fx-background-color: #1e1e1e;
 }
 
-/* Titles */
+
 .title {
   -fx-font-size: 28px;
   -fx-font-weight: 700;
@@ -14,13 +14,13 @@
   -fx-text-fill: #d1d5db;
 }
 
-/* Labels near inputs */
+
 .form-label {
   -fx-text-fill: #e5e7eb;
   -fx-font-weight: 600;
 }
 
-/* Inputs */
+
 .text-field, .password-field {
   -fx-background-color: #2d2d2d;
   -fx-text-fill: #f9fafb;
@@ -35,7 +35,6 @@
   -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.4), 8, 0.2, 0, 2);
 }
 
-/* Buttons */
 .button {
   -fx-background-color: #3b82f6;
   -fx-text-fill: white;
@@ -66,7 +65,6 @@
   -fx-background-color: #059669;
 }
 
-/* Quit button (quiet style) */
 #quitBtn {
   -fx-background-color: transparent;
   -fx-text-fill: #9ca3af;
@@ -75,5 +73,15 @@
   -fx-padding: 10 18;
 }
 #quitBtn:hover {
+  -fx-background-color: #374151;
+}
+#logOutBtn {
+  -fx-background-color: transparent;
+  -fx-text-fill: #9ca3af;
+  -fx-border-color: #6b7280;
+  -fx-border-radius: 8;
+  -fx-padding: 10 18;
+}
+#logOutBtn:hover {
   -fx-background-color: #374151;
 }
