@@ -195,17 +195,17 @@ public class ControllerAdminHome {
 	    if (result.isPresent() && result.get() == yes) 
 	    {
 	    	if (theDatabase.delete_user(selectedUser)) {
-	    		ViewAdminHome.alertEmailSent.setContentText("User has been deleted!");
+	    		ViewAdminHome.alertEmailSent.setContentText("User " + selectedUser + " has been deleted!");
 	    		ViewAdminHome.alertEmailSent.showAndWait();
 	    		List<String> updatedUserList = theDatabase.getUserList();
 	    		ViewAdminHome.combobox_SelectUser.setItems(FXCollections.observableArrayList(updatedUserList));
 	    		ViewAdminHome.combobox_SelectUser.getSelectionModel().select(0);
 	    	}
 	    }
-	    ViewAdminHome.alertNotImplemented.setTitle("Deletion completed");
-	    ViewAdminHome.alertNotImplemented.setHeaderText("Delete User Confirmation");
-	    ViewAdminHome.alertNotImplemented.setContentText("Deleted user " + selectedUser);
-	    ViewAdminHome.alertNotImplemented.showAndWait();
+	    //ViewAdminHome.alertNotImplemented.setTitle("Deletion completed");
+	    //ViewAdminHome.alertNotImplemented.setHeaderText("Delete User Confirmation");
+	    //ViewAdminHome.alertNotImplemented.setContentText("Deleted user " + selectedUser);
+	    //ViewAdminHome.alertNotImplemented.showAndWait();
 	}
 	
 	/**********
