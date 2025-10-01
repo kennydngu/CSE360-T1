@@ -24,15 +24,15 @@ import guiUserUpdate.ViewUserUpdate;
 /*******
  * <p> Title: GUIAdminHomePage Class. </p>
  * 
- * <p> Description: The Java/FX-based Admin Home Page. This class provides the JavaFX GUI widgets
- * that enable an admin to perform admin functions. This page contains a number of buttons that
- * have not yet been implemented. What has been implemented may not work the way the final product
+ * <p> Description: The Java/FX-based Admin Home Page.  This class provides the JavaFX GUI widgets
+ * that enable an admin to perform admin functions.  This page contains a number of buttons that
+ * have not yet been implemented.  What has been implemented may not work the way the final product
  * requires and there maybe defects in this code.
  * 
  * The class has been written using a singleton design pattern and is the View portion of the 
- * Model, View, Controller pattern. The pattern is designed that the all accesses to this page and
- * its functions starts by invoking the static method displayAdminHome. No other method should 
- * attempt to instantiate this class as that is controlled by displayAdminHome. It ensures that
+ * Model, View, Controller pattern.  The pattern is designed that the all accesses to this page and
+ * its functions starts by invoking the static method displayAdminHome.  No other method should 
+ * attempt to instantiate this class as that is controlled by displayAdminHome.  It ensure that
  * only one instance of class is instantiated and that one is properly configured for each use.  
  * 
  * Please note that this implementation is not appropriate for concurrent systems with multiple
@@ -43,7 +43,8 @@ import guiUserUpdate.ViewUserUpdate;
  * 
  * @author Lynn Robert Carter
  * 
- * @version 1.00 2025-08-17 Initial version
+ * @version 1.00		2025-08-17 Initial version
+ *  
  */
 
 public class ViewAdminHome extends BaseView {
