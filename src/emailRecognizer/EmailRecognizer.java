@@ -156,7 +156,7 @@ public class EmailRecognizer {
 				break;			
 				
 			case 2: 
-				// State 2 deals with a character after an @ 
+				// State 2 deals with a character after a @ 
 				
 				// A-Z, a-z, 0-9 -> State 1
 				localPart = false;
