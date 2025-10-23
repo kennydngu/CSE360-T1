@@ -9,8 +9,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.sql.Timestamp;
 
+
+
+import entityClasses.Post;
 import entityClasses.User;
+import entityClasses.Reply;
 
 /*******
  * <p> Title: Database Class. </p>
@@ -125,7 +130,57 @@ public class Database {
 	            + "role VARCHAR(10), "
 	    		+ "deadline TIMESTAMP)";   
 	    statement.execute(invitationCodesTable);
+	    
+	    statement.execute("CREATE TABLE IF NOT EXISTS posts (id INT AUTO_INCREMENT PRIMARY KEY)");
+	    try (Statement st = connection.createStatement()) {
+	        st.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS author VARCHAR(255)");
+	        st.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS title VARCHAR(255)");
+	        st.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS content CLOB");
+	        st.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS createdAt TIMESTAMP");
+	        st.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS updatedAt TIMESTAMP");
+	        st.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS thread VARCHAR(100) DEFAULT 'General'");
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    
+	    String repliesTable = "CREATE TABLE IF NOT EXISTS replies ("
+	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	            + "postId INT NOT NULL, "
+	            + "author VARCHAR(255) NOT NULL, "
+	            + "content CLOB NOT NULL, "
+	            + "createdAt TIMESTAMP NOT NULL, "
+	            + "updatedAt TIMESTAMP NOT NULL, "
+	            + "FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE)";
+	    statement.execute(repliesTable);
+	    
+	    
+	    String replyReads = "CREATE TABLE IF NOT EXISTS reply_reads ("
+	    		+ "    replyId INT NOT NULL,"
+	    		+ "    userName VARCHAR(255) NOT NULL,"
+	    		+ "    isRead BOOLEAN DEFAULT FALSE,"
+	    		+ "    PRIMARY KEY (replyId, userName),"
+	    		+ "    FOREIGN KEY (replyId) REFERENCES replies(id) ON DELETE CASCADE"
+	    		+ ");";
+	    statement.execute(replyReads);
+	    
+	    String postReads = 
+	    "CREATE TABLE IF NOT EXISTS post_reads (\n"
+	    + "	    	    postId   INT NOT NULL,\n"
+	    + "	    	    userName VARCHAR(255) NOT NULL,\n"
+	    + "	    	    isRead   BOOLEAN DEFAULT FALSE,\n"
+	    + "	    	    PRIMARY KEY (postId, userName),\n"
+	    + "	    	    FOREIGN KEY (postId) REFERENCES posts(id) ON DELETE CASCADE\n"
+	    + "	    	);";
+	    statement.execute(postReads);
+	    
+	    
+	    
+
 	}
+	
+	
+
+	
 
 
 /*******
@@ -1138,4 +1193,361 @@ public class Database {
 			se.printStackTrace(); 
 		} 
 	}
+	
+	
+	// database methods for posts/replies
+	
+			// ====== Post CRUD ======
+	public int createPost(Post p) throws SQLException { 
+		String query = "INSERT INTO posts (author, title, content, thread, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+	    	pstmt.setString(1, p.getAuthor());
+	    	pstmt.setString(2, p.getTitle());
+	    	pstmt.setString(3, p.getContent());
+	    	pstmt.setString(4, p.getThread() == null || p.getThread().isEmpty() ? "General" : p.getThread());
+	    	pstmt.setTimestamp(5, p.getCreatedAt());
+	    	pstmt.setTimestamp(6, p.getUpdatedAt());
+	    	pstmt.executeUpdate();
+	    	
+	    	
+	    	ResultSet rs = pstmt.getGeneratedKeys();
+	        if (rs.next()) return rs.getInt(1);
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return -1;
+	}
+	
+	public Post getPostById(int id) throws SQLException {
+		String query = "SELECT * FROM posts WHERE id = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, id);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+	        if (rs.next()) {
+	            Post p = new Post();
+	            p.setId(rs.getInt("id"));
+	            p.setAuthor(rs.getString("author"));
+	            p.setTitle(rs.getString("title"));
+	            p.setContent(rs.getString("content"));
+	            p.setCreatedAt(rs.getTimestamp("createdAt"));
+	            p.setUpdatedAt(rs.getTimestamp("updatedAt"));
+	            return p;
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
+				
+	public List<Post> listPosts() throws SQLException { 
+		List<Post> posts = new ArrayList<>();
+		String query = "SELECT * FROM posts ORDER BY createdAt DESC";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			ResultSet rs = pstmt.executeQuery();
+			
+			while (rs.next()) {
+				Post p = new Post(
+						rs.getInt("id"),
+		                rs.getString("author"),
+		                rs.getString("title"),
+		                rs.getString("content"),
+		                rs.getString("thread"),
+		                rs.getTimestamp("createdAt"),
+		                rs.getTimestamp("updatedAt")
+						);
+				posts.add(p);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return posts;
+	}
+	
+	
+    
+	public boolean updatePost(Post p) throws SQLException { 
+		String query = "UPDATE posts SET title = ?, content = ?, updatedAt = ? WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	    	pstmt.setString(1, p.getTitle());
+	        pstmt.setString(2, p.getContent());
+	        pstmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+	        pstmt.setInt(4, p.getId());
+	    	pstmt.executeUpdate();
+	    	return true;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+	
+	public boolean deletePost(int id) throws SQLException {
+	    String sql = "UPDATE posts " +
+	                 "SET title = '[POST DELETED]', " +
+	                 "    content = 'This post was deleted.', " +
+	                 "    updatedAt = CURRENT_TIMESTAMP " +
+	                 "WHERE id = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, id);
+	        return ps.executeUpdate() == 1;
+	    }
+	}
+	
+	// ====== Post functions ======
+	
+		public List<Post> listMyPosts(String author) throws SQLException {
+			String query = "SELECT * FROM posts WHERE author = ? ORDER BY createdAt ASC";
+			List<Post> myPosts = new ArrayList<>();
+			try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+				pstmt.setString(1, author);
+				ResultSet rs = pstmt.executeQuery();
+				
+				while (rs.next()) {
+					Post p = new Post(
+							rs.getInt("id"),
+			                rs.getString("author"),
+			                rs.getString("title"),
+			                rs.getString("content"),
+			                rs.getString("thread"),
+			                rs.getTimestamp("createdAt"),
+			                rs.getTimestamp("updatedAt")
+							);
+					myPosts.add(p);
+				} 
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return myPosts;
+			
+		}
+		
+		public List<Post> searchPosts(String keyword, String thread) throws SQLException {
+		    String sql = "SELECT * FROM posts WHERE (title LIKE ? OR content LIKE ? OR author LIKE ?)";
+		    
+		    if (thread != null && !thread.equalsIgnoreCase("All") && !thread.isEmpty()) {
+		        sql += " AND thread = ?";
+		    }
+
+		    sql += " ORDER BY createdAt DESC";
+
+		    List<Post> results = new ArrayList<>();
+
+		    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+		        ps.setString(1, "%" + keyword + "%");  // title
+		        ps.setString(2, "%" + keyword + "%");  // content
+		        ps.setString(3, "%" + keyword + "%");  // author
+
+		        // thE thread filter
+		        if (thread != null && !thread.equalsIgnoreCase("All") && !thread.isEmpty()) {
+		            ps.setString(4, thread);
+		        }
+
+		        try (ResultSet rs = ps.executeQuery()) {
+		            while (rs.next()) {
+		                Post p = new Post(
+		                    rs.getInt("id"),
+		                    rs.getString("author"),
+		                    rs.getString("title"),
+		                    rs.getString("content"),
+		                    rs.getString("thread"),
+		                    rs.getTimestamp("createdAt"),
+		                    rs.getTimestamp("updatedAt")
+		                );
+		                results.add(p);
+		            }
+		        }
+		    }
+		    return results;
+		}
+		
+		public void markPostRead(int postId, String userName) throws SQLException {
+		    
+		    String upd = "UPDATE post_reads SET isRead = TRUE WHERE postId = ? AND userName = ?";
+		    try (PreparedStatement ps = connection.prepareStatement(upd)) {
+		        ps.setInt(1, postId);
+		        ps.setString(2, userName);
+		        if (ps.executeUpdate() == 0) {
+		            String ins = "INSERT INTO post_reads (postId, userName, isRead) VALUES (?, ?, TRUE)";
+		            try (PreparedStatement insPs = connection.prepareStatement(ins)) {
+		                insPs.setInt(1, postId);
+		                insPs.setString(2, userName);
+		                insPs.executeUpdate();
+		            }
+		        }
+		    }
+		}
+
+		public boolean isPostRead(int postId, String userName) throws SQLException {
+		    String sql = "SELECT isRead FROM post_reads WHERE postId = ? AND userName = ?";
+		    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+		        ps.setInt(1, postId);
+		        ps.setString(2, userName);
+		        try (ResultSet rs = ps.executeQuery()) {
+		            return rs.next() && rs.getBoolean(1);
+		        }
+		    }
+		}
+		
+		// list for unread and read replies for the filter
+		public List<Reply> listUnreadRepliesForPost(int postId, String userName) throws SQLException {
+		    String sql = """
+		        SELECT r.id, r.author, r.content, r.createdAt, r.updatedAt, r.postId
+		        FROM replies r
+		        JOIN reply_reads rr ON rr.replyId = r.id
+		        WHERE r.postId = ? AND rr.userName = ? AND rr.isRead = FALSE
+		        ORDER BY r.createdAt ASC
+		    """;
+		    List<Reply> out = new ArrayList<>();
+		    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+		        ps.setInt(1, postId);
+		        ps.setString(2, userName);
+		        try (ResultSet rs = ps.executeQuery()) {
+		            while (rs.next()) {
+		                out.add(new Reply(
+		                    rs.getInt("id"),
+		                    rs.getString("author"),
+		                    rs.getString("content"),
+		                    rs.getTimestamp("createdAt"),
+		                    rs.getTimestamp("updatedAt"),
+		                    rs.getInt("postId")));
+		            }
+		        }
+		    }
+		    return out;
+		}
+
+
+			// ====== Reply CRUD ======
+	
+	public int createReply(Reply r) throws SQLException { 
+		String query = ("INSERT INTO replies(postId, author, content, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)");
+		try (PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+			pstmt.setInt(1, r.getPostId());
+			pstmt.setString(2, r.getAuthor());
+			pstmt.setString(3, r.getContent());
+			pstmt.setTimestamp(4, r.getCreatedAt());
+			pstmt.setTimestamp(5, r.getUpdatedAt());
+			
+			pstmt.executeUpdate();
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+	            if (rs.next()) {
+	            	int replyId = rs.getInt(1);
+	            	
+	            	// If the author of this reply isn't the author of the original post, add it as an unread reply
+	            	Post post = getPostById(r.getPostId());
+	                if (post != null && !r.getAuthor().equals(post.getAuthor())) {
+	                    String markUnread = "INSERT INTO reply_reads (replyId, userName, isRead) VALUES (?, ?, FALSE)";
+	                    try (PreparedStatement ps = connection.prepareStatement(markUnread)) {
+	                        ps.setInt(1, replyId);
+	                        ps.setString(2, post.getAuthor());
+	                        ps.executeUpdate();
+	                    }
+	                }
+	                
+	                return replyId;
+	            }
+	        }
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	
+	public int countReplies(int postId) throws SQLException {
+	    String sql = "SELECT COUNT(*) FROM replies WHERE postId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, postId);
+	        try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : 0; }
+	    }
+	}
+	
+	public int countUnreadReplies(int postId, String userName) throws SQLException {
+	    String sql =
+	        "SELECT COUNT(*) " +
+	        "FROM reply_reads rr JOIN replies r ON r.id = rr.replyId " +
+	        "WHERE rr.userName = ? AND r.postId = ? AND rr.isRead = FALSE"; // Counts how many replies on a specific post are still marked as unread for this user
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, userName);
+	        ps.setInt(2, postId);
+	        try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : 0; }
+	    }
+	}
+	
+	public void markReplyRead(int replyId, String userName) throws SQLException {
+	    String sql = "UPDATE reply_reads SET isRead = TRUE WHERE replyId = ? AND userName = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, replyId);
+	        ps.setString(2, userName);
+	        ps.executeUpdate();
+	    }
+	}
+	
+	public boolean isReplyRead(int replyId, String userName) throws SQLException {
+	    String sql = "SELECT isRead FROM reply_reads WHERE replyId = ? AND userName = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, replyId);
+	        ps.setString(2, userName);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            return rs.next() && rs.getBoolean(1);
+	        }
+	    }
+	}
+	
+	public void markRepliesReadForPost(int postId, String userName) throws SQLException {
+	    String sql =
+	        "UPDATE reply_reads SET isRead = TRUE " +
+	        "WHERE userName = ? AND replyId IN (SELECT id FROM replies WHERE postId = ?)";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, userName);
+	        ps.setInt(2, postId);
+	        ps.executeUpdate();
+	    }
+	}
+	
+	public List<Reply> listRepliesForPost(int postId) throws SQLException { /* TODO */
+		String query = "SELECT id, author, content, createdAt, updatedAt, postId FROM replies WHERE postId = ? ORDER BY createdAt ASC";
+		java.util.ArrayList<entityClasses.Reply> out = new java.util.ArrayList<>();
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, postId);
+			try(ResultSet rs = pstmt.executeQuery()) {
+				while(rs.next()) {
+					out.add(new entityClasses.Reply(
+							rs.getInt("id"),
+							rs.getString("author"),
+							rs.getString("content"),
+							rs.getTimestamp("createdAt"),
+							rs.getTimestamp("updatedAt"),
+							rs.getInt("postId")
+							));
+				}
+			}
+			
+		} catch (SQLException e) {
+			
+		}
+		
+		return out;
+	}
+	public boolean updateReply(Reply r) throws SQLException {
+	    String sql = "UPDATE replies SET content = ?, updatedAt = ? WHERE id = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, r.getContent());
+	        ps.setTimestamp(2, r.getUpdatedAt());
+	        ps.setInt(3, r.getId());
+	        return ps.executeUpdate() == 1;
+	    }
+	}
+
+	public boolean deleteReply(int id) throws SQLException {
+	    String sql = "DELETE FROM replies WHERE id = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, id);
+	        return ps.executeUpdate() == 1;
+	    }
+	}
+	
+	
+	
+			
 }

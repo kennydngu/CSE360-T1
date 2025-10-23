@@ -85,6 +85,7 @@ public class FoundationsMain extends Application {
 		try {
 			// Connect to the database
 			database.connectToDatabase();
+
 		} catch (SQLException e) {
 			// If the connection request fails, it usually means some other app is using it
 			databaseInUse.setTitle("*** ERROR ***");
@@ -108,6 +109,7 @@ public class FoundationsMain extends Application {
 		
 		// With the JavaFX pages set up, this thread of the execution comes to an end.
 	}
+	
 
 	/*******
 	 * <p> Title: FoundationsMain main method that starts up JavaFX</p>
