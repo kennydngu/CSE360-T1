@@ -1,0 +1,1 @@
+memberSearchIndex = [{"p":"grading","c":"ParticipationCalculatorTest","l":"main(String[])","u":"main(java.lang.String[])"},{"p":"grading","c":"ParticipationCalculatorTest","l":"ParticipationCalculatorTest()","u":"%3Cinit%3E()"}];updateSearchResults();

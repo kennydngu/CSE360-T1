@@ -179,6 +179,37 @@ public class Database {
 	}
 	
 	
+    /*******
+     * <p> Method: listStudentUserNames </p>
+     *
+     * <p>Description: Returns a list of all user names who currently have the
+     * Student role. This is used by the staff grading view to show one row
+     * per student even if they have not posted or replied.</p>
+     *
+     * @return a List of userName strings for all student users
+     * @throws SQLException if there is a database error
+     */
+    public List<String> listStudentUserNames() throws SQLException {
+        List<String> students = new ArrayList<>();
+
+        // NOTE: "StudentRole" matches the existing login queries
+        String query = "SELECT userName FROM userDB WHERE StudentRole = TRUE ORDER BY userName";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                String userName = rs.getString("userName");
+                if (userName != null && !userName.isEmpty()) {
+                    students.add(userName);
+                }
+            }
+        }
+
+        return students;
+    }
+
+	
 
 	
 

@@ -4,4 +4,6 @@ module FoundationsF25 {
 	requires javafx.graphics;
 	
 	opens applicationMain to javafx.graphics, javafx.fxml;
+	
+	opens guiStaff to javafx.base;
 }

@@ -20,5 +20,9 @@ public class ControllerStaffHome {
 	protected static void performQuit() {
 		System.exit(0);
 	}
+	
+	  protected static void performShowGrading() {
+	        ViewStaffGrading.displayStaffGrading(ViewStaffHome.theStage, ViewStaffHome.theUser);
+	    }
 
 }

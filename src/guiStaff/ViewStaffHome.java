@@ -49,7 +49,8 @@ public class ViewStaffHome {
 	protected static Label label_PageTitle = new Label();
 	protected static Label label_UserDetails = new Label();
 	protected static Button button_UpdateThisUser = new Button("Account Update");
-		
+	protected static Button button_GradeStudents = new Button("Grade Students");
+	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
 
@@ -162,6 +163,8 @@ public class ViewStaffHome {
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
 		button_UpdateThisUser.setOnAction((event) -> {ControllerStaffHome.performUpdate(); });
 		
+		setupButtonUI(button_GradeStudents, "Dialog", 18, 170, Pos.CENTER, 610, 115);
+		button_GradeStudents.setOnAction((event) -> { ControllerStaffHome.performShowGrading(); });
 		// GUI Area 2
 		
 			// This is a stub, so this area is empty
@@ -178,7 +181,7 @@ public class ViewStaffHome {
 		
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
-			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
+			label_PageTitle, label_UserDetails, button_UpdateThisUser,  button_GradeStudents, line_Separator1,
 	        line_Separator4, button_Logout, button_Quit);
 	}
 	
