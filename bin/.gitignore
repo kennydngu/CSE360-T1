@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /guiAddRemoveRoles/
 /guiAdminHome/
 /guiFirstAdmin/
@@ -5,3 +6,16 @@
 /guiNewAccount/
 /guiPosts/
 /guiStaff/
+=======
+/guiStudent/
+/guiTools/
+/guiUserLogin/
+/guiUserUpdate/
+/passwordEvaluationTestbedMain/
+/passwordPopUpWindow/
+/userNameRecognizer/
+/tests/
+>>>>>>> branch 'master' of https://github.com/kennydngu/CSE360-T1.git
+/database/
+/discussionModels/
+/entityClasses/

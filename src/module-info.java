@@ -6,4 +6,6 @@ module FoundationsF25 {
 
 	
 	opens applicationMain to javafx.graphics, javafx.fxml;
+	
+	opens guiStaff to javafx.base;
 }
