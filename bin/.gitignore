@@ -1,8 +1,3 @@
-/applicationMain/
-/database/
-/discussionModels/
-/emailRecognizer/
-/entityClasses/
 /guiAddRemoveRoles/
 /guiAdminHome/
 /guiFirstAdmin/
@@ -10,12 +5,3 @@
 /guiNewAccount/
 /guiPosts/
 /guiStaff/
-/guiStudent/
-/guiTools/
-/guiUserLogin/
-/guiUserUpdate/
-/passwordEvaluationTestbedMain/
-/passwordPopUpWindow/
-/styles/
-/userNameRecognizer/
-/module-info.class

@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 
 import entityClasses.Post;
 import entityClasses.User;
+import entityClasses.feedback;
 import entityClasses.Reply;
 
 /*******
@@ -173,6 +174,16 @@ public class Database {
 	    + "	    	);";
 	    statement.execute(postReads);
 	    
+	    //statement.execute("DROP TABLE IF EXISTS feedbackDB;");
+	    //DB for feedback
+	    String feedback = 
+	    	    "CREATE TABLE IF NOT EXISTS feedbackDB (\n"
+	    	    + "feedId INT AUTO_INCREMENT PRIMARY KEY,\n"
+	    	    + "content VARCHAR(710) NOT NULL,\n"
+	    	    + "staffUser VARCHAR(255) NOT NULL,\n"
+	    	    + "studentUser VARCHAR(255) NOT NULL);";
+	    statement.execute(feedback);
+	    
 	    
 	    
 
@@ -203,6 +214,26 @@ public class Database {
 	    }
 		return true;
 	}
+	/*******
+	 * <p> Method: isDatabaseFeedEmpty </p>
+	 * 
+	 * <p> Description: If the feedback database has no rows, true is returned, else false.</p>
+	 * 
+	 * @return true if the database is empty, else it returns false
+	 * 
+	 */
+		public boolean isDatabaseFeedEmpty() {
+			String query = "SELECT COUNT(*) AS count FROM feedbackDB";
+			try {
+				ResultSet resultSet = statement.executeQuery(query);
+				if (resultSet.next()) {
+					return resultSet.getInt("count") == 0;
+				}
+			}  catch (SQLException e) {
+		        return false;
+		    }
+			return true;
+		}
 	
 	
 /*******
@@ -1194,7 +1225,70 @@ public class Database {
 		} 
 	}
 	
+	// database methods for feedback
+	//to create feedback
+	public int createFeedback(feedback f) throws SQLException { 
+		String query = "INSERT INTO feedbackDB (content, staffUser, studentUser) VALUES (?, ?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+	    	pstmt.setString(1, f.getContent());
+	    	pstmt.setString(2, f.getStaff());
+	    	pstmt.setString(3, f.getStudent());
+	    	pstmt.executeUpdate();
+	    	
+	    	
+	    	ResultSet rs = pstmt.getGeneratedKeys();
+	        if (rs.next()) return rs.getInt(1);
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return -1;
+	}
 	
+	//to list feedback to staff, their own feedback and ones they sent
+	public List<feedback> listFeedback(String user) throws SQLException { 
+		List<feedback> feedback = new ArrayList<>();
+		String query = "SELECT * FROM feedbackDB WHERE staffUser = ? OR studentUser = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, user);
+			pstmt.setString(2, user);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+			while (rs.next()) {
+				feedback f = new feedback(
+						rs.getInt("feedId"),
+		                rs.getString("content"),
+		                rs.getString("studentUser"),
+		                rs.getString("staffUser"));
+				feedback.add(f);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return feedback;
+	}
+	
+	//to list feeback to students only their own
+	public List<feedback> listFeedbackOnly(String user) throws SQLException { 
+		List<feedback> feedback = new ArrayList<>();
+		String query = "SELECT * FROM feedbackDB WHERE studentUser = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, user);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+			while (rs.next()) {
+				feedback f = new feedback(
+						rs.getInt("feedId"),
+		                rs.getString("content"),
+		                rs.getString("studentUser"),
+		                rs.getString("staffUser"));
+				feedback.add(f);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return feedback;
+	}
+
 	// database methods for posts/replies
 	
 			// ====== Post CRUD ======

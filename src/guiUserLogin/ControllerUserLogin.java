@@ -20,7 +20,7 @@ public class ControllerUserLogin {
 	// Reference for the in-memory database so this package has access
 	private static Database theDatabase = applicationMain.FoundationsMain.database;
 
-	private static Stage theStage;	
+	static Stage theStage;	
 	
 	/**********
 	 * <p> Method: public doLogin() </p>
@@ -79,16 +79,19 @@ public class ControllerUserLogin {
 			if (user.getAdminRole()) {
 				loginResult = theDatabase.loginAdmin(user);
 				if (loginResult) {
+					System.out.println("*** Login as admin");
 					guiAdminHome.ViewAdminHome.displayAdminHome(theStage, user);
 				}
 			} else if (user.getStudentRole()) {
 				loginResult = theDatabase.loginStudentRole(user);
 				if (loginResult) {
+					System.out.println("*** Login as student");
 					guiStudent.ViewStudentHome.displayStudentHome(theStage, user);
 				}
 			} else if (user.getStaffRole()) {
 				loginResult = theDatabase.loginStaffRole(user);
 				if (loginResult) {
+					System.out.println("*** Login as staff");
 					guiStaff.ViewStaffHome.displayStaffHome(theStage, user);
 				}
 				// Other roles

@@ -12,6 +12,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import database.Database;
 import entityClasses.User;
+import guiStaff.ControllerStaffHome;
 import guiUserUpdate.ViewUserUpdate;
 import java.sql.SQLException;
 
@@ -90,11 +91,15 @@ public class ViewStudentHome {
 	
 	private static discussionModels.PostManager postManager;
 	private static javafx.collections.ObservableList<entityClasses.Post> posts;
+	protected static javafx.collections.ObservableList<entityClasses.feedback> feedbacks;
+	private static javafx.scene.control.ListView<entityClasses.feedback> feedbackView;
 	private static javafx.scene.control.ListView<entityClasses.Post> listView;
 	private static javafx.scene.control.Button btnRefresh = new javafx.scene.control.Button("All Posts");
 	private static javafx.scene.control.Button btnNew = new javafx.scene.control.Button("New");
 	private static javafx.scene.control.Button btnEdit = new javafx.scene.control.Button("Edit");
 	private static javafx.scene.control.Button btnDelete = new javafx.scene.control.Button("Delete");
+	private static javafx.scene.control.Button btnFeedback = new javafx.scene.control.Button("See Feedback");
+	private static javafx.scene.control.Button btnFeedbackTest = new javafx.scene.control.Button("Test Feedback");
 	private static javafx.scene.control.TextArea postContent = new javafx.scene.control.TextArea();
 	
 	
@@ -223,7 +228,34 @@ public class ViewStudentHome {
 		
 		// GUI Area 2
 		
+		feedbacks = javafx.collections.FXCollections.observableArrayList();
+		feedbackView = new javafx.scene.control.ListView<>(feedbacks);
 		
+		
+		//FIX TEXT
+		feedbackView.setCellFactory(i -> new javafx.scene.control.ListCell<entityClasses.feedback>() {
+		    @Override protected void updateItem(entityClasses.feedback p, boolean empty) {
+		        super.updateItem(p, empty);
+		        if (empty || p == null) { setText(null); setStyle(""); return; }
+		       
+		           
+		            setText("#" + p.getId() + " for you" + " - " + p.getContent());
+
+		       
+		    }
+		});
+		
+		feedbackView.setOnMouseClicked(ev -> {
+		    if (ev.getClickCount() == 2) {
+		        var sel = feedbackView.getSelectionModel().getSelectedItem();
+		        if (sel != null) openFeedbackViewer(sel);
+		    }
+		});
+		
+		// feedback view
+		feedbackView.setLayoutX(20);
+		feedbackView.setLayoutY(160);
+		feedbackView.setPrefSize(width - 40, 340);
 		
 		posts = javafx.collections.FXCollections.observableArrayList();
 		listView = new javafx.scene.control.ListView<>(posts);
@@ -313,7 +345,7 @@ public class ViewStudentHome {
 			            refreshPosts();         // back to full list
 			        });
 			    }},
-			    btnNew, btnEdit, btnDelete
+			    btnNew, btnEdit, btnDelete, btnFeedback, btnFeedbackTest
 			);
 			bar.setLayoutX(20);
 			bar.setLayoutY(120);
@@ -356,6 +388,9 @@ public class ViewStudentHome {
 		        }
 		    }
 		});
+		
+		btnFeedback.setOnAction(e->ControllerStudentHome.showFeedback());
+		btnFeedbackTest.setOnAction(e->TestFeedback.start());
 
 		postContent.setEditable(false);
 		postContent.setWrapText(true);
@@ -370,8 +405,12 @@ public class ViewStudentHome {
 			postContent.setText(sel == null ? "" : sel.getContent());
 		});
 		
+		feedbackView.getSelectionModel().selectedItemProperty().addListener((obs,oldV, sel) -> {
+			postContent.setText(sel == null ? "" : sel.getContent());
+		});
+		
 		// add Area 2 nodes to root
-		theRootPane.getChildren().addAll(bar, listView, postContent);
+		theRootPane.getChildren().addAll(bar, listView, feedbackView, postContent);
 
 		
 		
@@ -410,13 +449,13 @@ public class ViewStudentHome {
 		button_Logout.layoutYProperty().bind(
 		    theRootPane.heightProperty()
 		        .subtract(button_Logout.heightProperty())
-		        .subtract(12)   // bottom padding
+		        .subtract(250)   // bottom padding
 		);
 
 		button_Quit.layoutYProperty().bind(
 		    theRootPane.heightProperty()
 		        .subtract(button_Quit.heightProperty())
-		        .subtract(12)
+		        .subtract(250)
 		);
         
 		// This is the end of the GUI initialization code
@@ -516,11 +555,23 @@ public class ViewStudentHome {
 		btnDelete.setDisable(!owner);
 	}
 	
-	
+	protected static void selectFirstAndSyncUIFeed() {
+	    if (!feedbacks.isEmpty()) {
+	        feedbackView.getSelectionModel().select(0);
+	        listView.setVisible(false);
+	        feedbackView.setVisible(true);
+	        postContent.setText(feedbacks.get(0).getContent());
+	    } else {
+	        postContent.setText("");
+	        updateButtonStates(null);
+	    }
+	}
 	
 	private static void selectFirstAndSyncUI() {
 	    if (!posts.isEmpty()) {
 	        listView.getSelectionModel().select(0);
+	        listView.setVisible(true);
+	        feedbackView.setVisible(false);
 	        postContent.setText(posts.get(0).getContent());
 	        updateButtonStates(posts.get(0));
 	    } else {
@@ -716,13 +767,32 @@ public class ViewStudentHome {
 	        .addEventFilter(javafx.event.ActionEvent.ACTION, e -> { e.consume(); var sel = replyList.getSelectionModel().getSelectedItem(); if (sel != null) { editReply(sel, localReplies); loadReplies.run(); }});
 	    ((javafx.scene.control.Button) dlg.getDialogPane().lookupButton(deleteBtn))
 	        .addEventFilter(javafx.event.ActionEvent.ACTION, e -> { e.consume(); var sel = replyList.getSelectionModel().getSelectedItem(); if (sel != null) { deleteReply(sel, localReplies); loadReplies.run(); }});
-
+	    
+	    
 	    dlg.setOnHidden(ev -> { try { refreshPosts(); } catch (Exception ignore) {} });
 	    dlg.showAndWait();
 	}
+	
+	protected static String openFeedbackViewer(entityClasses.feedback p) {
+
+	    var dlg   = new javafx.scene.control.Dialog<Void>();
+	    dlg.setTitle("Feedback");
+
+	    var content = new javafx.scene.control.Label(p.getContent());
+	    content.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+	    var meta  = new javafx.scene.control.Label("to you");
+
+	    var root = new javafx.scene.layout.VBox(8, content, meta);
+		root.setPadding(new javafx.geometry.Insets(10));
+		dlg.getDialogPane().setContent(root);
+		dlg.getDialogPane().getButtonTypes().addAll(javafx.scene.control.ButtonType.CLOSE);
+	    dlg.setOnHidden(ev -> { try { ControllerStudentHome.showFeedback(); } catch (Exception ignore) {} });
+	    dlg.showAndWait();
+	    return "feedback viewing";
+	}
 
 	
-	private static void alert(String title, String msg) {
+	protected static void alert(String title, String msg) {
 	    var a = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
 	    a.setTitle(title);
 	    a.setHeaderText(null);
@@ -805,6 +875,7 @@ public class ViewStudentHome {
 	        alert("Error", "Failed to save reply.");
 	    }
 	}
+
 	
 	private static void createReply(entityClasses.Post p,
         javafx.collections.ObservableList<entityClasses.Reply> replies) {

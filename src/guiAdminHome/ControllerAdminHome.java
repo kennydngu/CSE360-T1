@@ -140,6 +140,7 @@ public class ControllerAdminHome {
 	    {
 	        String message = "One-time password has been set for user: " + selected_user + 
 	                        "\nNew Password: " + one_time_password;
+	        System.out.println(message);
 	        ViewAdminHome.alertEmailSent.setTitle("One-Time Password Set");
 	        ViewAdminHome.alertEmailSent.setHeaderText("Password Updated");
 	        ViewAdminHome.alertEmailSent.setContentText(message);
@@ -151,6 +152,22 @@ public class ControllerAdminHome {
 	        ViewAdminHome.alertEmailError.setContentText("Failed to update password for user: "+selected_user);
 	        ViewAdminHome.alertEmailError.showAndWait();
 	    }
+	}
+	
+	//logic only set_one_time_password for junit testing
+	protected static String set_one_time_password_logic(String user) {
+	    String selected_user=user;
+	    
+	    if (selected_user==null||selected_user.equals("<Select a User>")) 
+	    {
+	        return "no password set";
+	    }
+	    
+	    String one_time_password="Cse360"+System.currentTimeMillis() % 100000;
+	    
+	    
+	     return one_time_password;
+	    
 	}
 	
 	/**********
