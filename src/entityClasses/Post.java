@@ -10,7 +10,7 @@ public class Post {
 	private String author;
 	private String title;
 	private String content;
-	private String thread;
+	private DiscussionThread thread;
 	private Timestamp createdAt;
 	private Timestamp updatedAt;
 	
@@ -18,15 +18,27 @@ public class Post {
 	public Post() {}
 
 	
-	public Post (int id, String author, String title, String content, String thread, Timestamp createdAt, Timestamp updatedAt) {
-		this.id = id;
-        this.author = author;
-        this.title = title;
-        this.content = content;
-        this.thread = thread;
-        this.createdAt = createdAt;
-        this.updatedAt = createdAt;
-	}
+	public Post(int id, String author, String title, String content, String threadTitle,
+            Timestamp createdAt, Timestamp updatedAt) {
+    this.id = id;
+    this.author = author;
+    this.title = title;
+    this.content = content;
+    setThread(threadTitle);
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+}
+
+public Post(int id, String author, String title, String content, DiscussionThread thread,
+            Timestamp createdAt, Timestamp updatedAt) {
+    this.id = id;
+    this.author = author;
+    this.title = title;
+    this.content = content;
+    this.thread = thread;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+}
 	
 	// getter and setter functions 
 	
@@ -47,6 +59,12 @@ public class Post {
     }
     
     public String getThread() {
+    	if (thread == null) return null;
+ 
+    	return thread.getThreadTitle();
+    }
+    
+    public DiscussionThread getThreadObj() {
     	return thread;
     }
 
@@ -62,10 +80,23 @@ public class Post {
     	this.title = title;
     }
     
-    public void setThread(String thread) {
+    public void setThread(String threadTitle) {
+        if (threadTitle == null || threadTitle.trim().isEmpty()) {
+            this.thread = null;
+            return;
+        }
+        DiscussionThread t = new DiscussionThread();
+        t.setNameOfThread(threadTitle.trim());
+        this.thread = t;
+    }
+
+    
+    public void setThread(DiscussionThread thread) {
     	this.thread = thread;
     }
     
+
+  
     public void setContent(String content) {
     	this.content = content;
     }

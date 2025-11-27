@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import java.sql.Timestamp;
 
-
-
+import entityClasses.DiscussionThread;
 import entityClasses.Post;
 import entityClasses.User;
 import entityClasses.feedback;
@@ -143,6 +142,12 @@ public class Database {
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
+	    
+	    String threadsTable = "CRAETE TABLE IF NOT EXISTS threads ("
+	    		+ "id INT AUTO_INCREMENT PRIMARY KEY, "
+	    		+ "ThreadTitle VARCHAR(255) UNIQUE NOT NULL, "
+	    		+ "description CLOB"
+	    		+ ")";
 	    
 	    String repliesTable = "CREATE TABLE IF NOT EXISTS replies ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
@@ -1322,6 +1327,35 @@ public class Database {
 
 	// database methods for posts/replies
 	
+	//Thread Normalizers
+	
+	private String normalizeThreadTitle(String threadTitle) {
+	    if (threadTitle == null) return "General";
+	    threadTitle = threadTitle.trim();
+	    return threadTitle.isEmpty() ? "General" : threadTitle;
+	}
+
+
+	private DiscussionThread threadFromRow(ResultSet rs) throws SQLException {
+	    String title = rs.getString("thread_title");   // from JOIN
+	    if (title != null) {
+	        return new DiscussionThread(
+	            rs.getInt("thread_id"),
+	            title,
+	            rs.getString("thread_desc")
+	        );
+	    }
+
+	    String fallback = rs.getString("thread"); // from posts table
+	    if (fallback == null || fallback.trim().isEmpty()) fallback = "General";
+
+	    DiscussionThread t = new DiscussionThread();
+	    t.setNameOfThread(fallback.trim());
+	    t.setDescription(null);
+	    return t;
+	}
+
+	
 			// ====== Post CRUD ======
 	public int createPost(Post p) throws SQLException { 
 		String query = "INSERT INTO posts (author, title, content, thread, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)";
@@ -1329,7 +1363,7 @@ public class Database {
 	    	pstmt.setString(1, p.getAuthor());
 	    	pstmt.setString(2, p.getTitle());
 	    	pstmt.setString(3, p.getContent());
-	    	pstmt.setString(4, p.getThread() == null || p.getThread().isEmpty() ? "General" : p.getThread());
+	    	pstmt.setString(4, normalizeThreadTitle(p.getThread()));
 	    	pstmt.setTimestamp(5, p.getCreatedAt());
 	    	pstmt.setTimestamp(6, p.getUpdatedAt());
 	    	pstmt.executeUpdate();
@@ -1344,12 +1378,17 @@ public class Database {
 	}
 	
 	public Post getPostById(int id) throws SQLException {
-		String query = "SELECT * FROM posts WHERE id = ?";
-		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-			pstmt.setInt(1, id);
-	        ResultSet rs = pstmt.executeQuery();
-	        
-	        if (rs.next()) {
+	    String sql =
+	        "SELECT p.*, t.id AS thread_id, t.ThreadTitle AS thread_title, t.description AS thread_desc " +
+	        "FROM posts p " +
+	        "LEFT JOIN threads t ON p.thread = t.ThreadTitle " +
+	        "WHERE p.id = ?";
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setInt(1, id);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (!rs.next()) return null;
+
 	            Post p = new Post();
 	            p.setId(rs.getInt("id"));
 	            p.setAuthor(rs.getString("author"));
@@ -1357,54 +1396,54 @@ public class Database {
 	            p.setContent(rs.getString("content"));
 	            p.setCreatedAt(rs.getTimestamp("createdAt"));
 	            p.setUpdatedAt(rs.getTimestamp("updatedAt"));
+	            p.setThread(threadFromRow(rs));
 	            return p;
 	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
 	    }
-	    return null;
 	}
-				
-	public List<Post> listPosts() throws SQLException { 
-		List<Post> posts = new ArrayList<>();
-		String query = "SELECT * FROM posts ORDER BY createdAt DESC";
-		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-			ResultSet rs = pstmt.executeQuery();
-			
-			while (rs.next()) {
-				Post p = new Post(
-						rs.getInt("id"),
-		                rs.getString("author"),
-		                rs.getString("title"),
-		                rs.getString("content"),
-		                rs.getString("thread"),
-		                rs.getTimestamp("createdAt"),
-		                rs.getTimestamp("updatedAt")
-						);
-				posts.add(p);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return posts;
+		
+	public List<Post> listPosts() throws SQLException {
+	    List<Post> posts = new ArrayList<>();
+
+	    String sql =
+	        "SELECT p.*, t.id AS thread_id, t.ThreadTitle AS thread_title, t.description AS thread_desc " +
+	        "FROM posts p " +
+	        "LEFT JOIN threads t ON p.thread = t.ThreadTitle " +
+	        "ORDER BY p.createdAt DESC";
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql);
+	         ResultSet rs = ps.executeQuery()) {
+
+	        while (rs.next()) {
+	            Post p = new Post();
+	            p.setId(rs.getInt("id"));
+	            p.setAuthor(rs.getString("author"));
+	            p.setTitle(rs.getString("title"));
+	            p.setContent(rs.getString("content"));
+	            p.setCreatedAt(rs.getTimestamp("createdAt"));
+	            p.setUpdatedAt(rs.getTimestamp("updatedAt"));
+	            p.setThread(threadFromRow(rs));
+	            posts.add(p);
+	        }
+	    }
+	    return posts;
 	}
-	
+
 	
     
-	public boolean updatePost(Post p) throws SQLException { 
-		String query = "UPDATE posts SET title = ?, content = ?, updatedAt = ? WHERE id = ?";
-	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-	    	pstmt.setString(1, p.getTitle());
-	        pstmt.setString(2, p.getContent());
-	        pstmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
-	        pstmt.setInt(4, p.getId());
-	    	pstmt.executeUpdate();
-	    	return true;
-	    } catch (SQLException e) {
-	        e.printStackTrace();
+	public boolean updatePost(Post p) throws SQLException {
+	    String sql = "UPDATE posts SET title = ?, content = ?, thread = ?, updatedAt = ? WHERE id = ?";
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, p.getTitle());
+	        ps.setString(2, p.getContent());
+	        ps.setString(3, normalizeThreadTitle(p.getThread()));
+	        ps.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+	        ps.setInt(5, p.getId());
+	        return ps.executeUpdate() == 1;
 	    }
-	    return false;
 	}
+
 	
 	public boolean deletePost(int id) throws SQLException {
 	    String sql = "UPDATE posts " +
@@ -1420,64 +1459,88 @@ public class Database {
 	
 	// ====== Post functions ======
 	
-		public List<Post> listMyPosts(String author) throws SQLException {
-			String query = "SELECT * FROM posts WHERE author = ? ORDER BY createdAt ASC";
-			List<Post> myPosts = new ArrayList<>();
-			try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-				pstmt.setString(1, author);
-				ResultSet rs = pstmt.executeQuery();
-				
-				while (rs.next()) {
-					Post p = new Post(
-							rs.getInt("id"),
-			                rs.getString("author"),
-			                rs.getString("title"),
-			                rs.getString("content"),
-			                rs.getString("thread"),
-			                rs.getTimestamp("createdAt"),
-			                rs.getTimestamp("updatedAt")
-							);
-					myPosts.add(p);
-				} 
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			return myPosts;
-			
-		}
+	public List<Post> listMyPosts(String author) throws SQLException {
+	    String sql =
+	        "SELECT p.*, t.id AS thread_id, t.ThreadTitle AS thread_title, t.description AS thread_desc " +
+	        "FROM posts p " +
+	        "LEFT JOIN threads t ON p.thread = t.ThreadTitle " +
+	        "WHERE p.author = ? " +
+	        "ORDER BY p.createdAt ASC";
+
+	    List<Post> myPosts = new ArrayList<>();
+
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, author);
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                Post p = new Post();
+	                p.setId(rs.getInt("id"));
+	                p.setAuthor(rs.getString("author"));
+	                p.setTitle(rs.getString("title"));
+	                p.setContent(rs.getString("content"));
+	                p.setCreatedAt(rs.getTimestamp("createdAt"));
+	                p.setUpdatedAt(rs.getTimestamp("updatedAt"));
+
+	                String jtTitle = rs.getString("thread_title");
+	                DiscussionThread dt;
+
+	                if (jtTitle != null) {
+	                    dt = new DiscussionThread(
+	                        rs.getInt("thread_id"),
+	                        jtTitle,
+	                        rs.getString("thread_desc")
+	                    );
+	                } else {
+	                    String fallback = rs.getString("thread");
+	                    if (fallback == null || fallback.trim().isEmpty()) fallback = "General";
+	                    dt = new DiscussionThread();
+	                    dt.setNameOfThread(fallback.trim());
+	                    dt.setDescription(null);
+	                }
+
+	                p.setThread(dt);
+
+	                myPosts.add(p);
+	            }
+	        }
+	    }
+
+	    return myPosts;
+	}
+
 		
 		public List<Post> searchPosts(String keyword, String thread) throws SQLException {
-		    String sql = "SELECT * FROM posts WHERE (title LIKE ? OR content LIKE ? OR author LIKE ?)";
-		    
-		    if (thread != null && !thread.equalsIgnoreCase("All") && !thread.isEmpty()) {
-		        sql += " AND thread = ?";
-		    }
+		    if (keyword == null) keyword = "";
+		    String sql =
+		        "SELECT p.*, t.id AS thread_id, t.ThreadTitle AS thread_title, t.description AS thread_desc " +
+		        "FROM posts p " +
+		        "LEFT JOIN threads t ON p.thread = t.ThreadTitle " +
+		        "WHERE (p.title LIKE ? OR p.content LIKE ? OR p.author LIKE ?)";
 
-		    sql += " ORDER BY createdAt DESC";
+		    boolean filterThread = thread != null && !thread.equalsIgnoreCase("All") && !thread.trim().isEmpty();
+		    if (filterThread) sql += " AND p.thread = ?";
+
+		    sql += " ORDER BY p.createdAt DESC";
 
 		    List<Post> results = new ArrayList<>();
 
 		    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-		        ps.setString(1, "%" + keyword + "%");  // title
-		        ps.setString(2, "%" + keyword + "%");  // content
-		        ps.setString(3, "%" + keyword + "%");  // author
-
-		        // thE thread filter
-		        if (thread != null && !thread.equalsIgnoreCase("All") && !thread.isEmpty()) {
-		            ps.setString(4, thread);
-		        }
+		        ps.setString(1, "%" + keyword + "%");
+		        ps.setString(2, "%" + keyword + "%");
+		        ps.setString(3, "%" + keyword + "%");
+		        if (filterThread) ps.setString(4, thread.trim());
 
 		        try (ResultSet rs = ps.executeQuery()) {
 		            while (rs.next()) {
-		                Post p = new Post(
-		                    rs.getInt("id"),
-		                    rs.getString("author"),
-		                    rs.getString("title"),
-		                    rs.getString("content"),
-		                    rs.getString("thread"),
-		                    rs.getTimestamp("createdAt"),
-		                    rs.getTimestamp("updatedAt")
-		                );
+		                Post p = new Post();
+		                p.setId(rs.getInt("id"));
+		                p.setAuthor(rs.getString("author"));
+		                p.setTitle(rs.getString("title"));
+		                p.setContent(rs.getString("content"));
+		                p.setCreatedAt(rs.getTimestamp("createdAt"));
+		                p.setUpdatedAt(rs.getTimestamp("updatedAt"));
+		                p.setThread(threadFromRow(rs));
 		                results.add(p);
 		            }
 		        }
@@ -1539,6 +1602,90 @@ public class Database {
 		        }
 		    }
 		    return out;
+		}
+
+		
+			// ====== THREAD CRUD ======
+
+		public int createThread(DiscussionThread t) throws SQLException {
+		    String query = "INSERT INTO threads (ThreadTitle, description) VALUES (?, ?)";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+		        pstmt.setString(1, t.getThreadTitle());
+		        pstmt.setString(2, t.getDescription());
+		        pstmt.executeUpdate();
+
+		        try (ResultSet rs = pstmt.getGeneratedKeys()) {
+		            if (rs.next()) {
+		                int id = rs.getInt(1);
+		                t.setId(id);
+		                return id;
+		            }
+		        }
+		    }
+		    return -1;
+		}
+
+		public DiscussionThread getThreadById(int id) throws SQLException {
+		    String sql = "SELECT id, ThreadTitle, description FROM threads WHERE id = ?";
+		    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+		        ps.setInt(1, id);
+		        try (ResultSet rs = ps.executeQuery()) {
+		            if (rs.next()) {
+		                return new DiscussionThread(
+		                        rs.getInt("id"),
+		                        rs.getString("ThreadTitle"),
+		                        rs.getString("description")
+		                );
+		            }
+		        }
+		    }
+		    return null;
+		}
+
+		public List<DiscussionThread> listThread() throws SQLException {
+		    List<DiscussionThread> threads = new ArrayList<>();
+		    String sql = "SELECT id, ThreadTitle, description FROM threads ORDER BY id DESC";
+		    try (PreparedStatement ps = connection.prepareStatement(sql);
+		         ResultSet rs = ps.executeQuery()) {
+		        while (rs.next()) {
+		            threads.add(new DiscussionThread(
+		                    rs.getInt("id"),
+		                    rs.getString("ThreadTitle"),
+		                    rs.getString("description")
+		            ));
+		        }
+		    }
+		    return threads;
+		}
+
+		public boolean updateThread(DiscussionThread t) throws SQLException {
+		    String sql = "UPDATE threads SET ThreadTitle = ?, description = ? WHERE id = ?";
+		    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+		        ps.setString(1, t.getThreadTitle());
+		        ps.setString(2, t.getDescription());
+		        ps.setInt(3, t.getId());
+		        return ps.executeUpdate() == 1;
+		    }
+		}
+
+		public boolean deleteThread(int id) throws SQLException {
+		    DiscussionThread existing = getThreadById(id);
+		    if (existing == null) return false;
+
+		    String title = existing.getThreadTitle();
+		    if (title != null && title.equalsIgnoreCase("General")) return false;
+
+		    try (PreparedStatement ps = connection.prepareStatement(
+		            "UPDATE posts SET thread = 'General' WHERE thread = ?")) {
+		        ps.setString(1, title);
+		        ps.executeUpdate();
+		    }
+
+		    try (PreparedStatement ps = connection.prepareStatement(
+		            "DELETE FROM threads WHERE id = ?")) {
+		        ps.setInt(1, id);
+		        return ps.executeUpdate() == 1;
+		    }
 		}
 
 
@@ -1671,8 +1818,6 @@ public class Database {
 	        return ps.executeUpdate() == 1;
 	    }
 	}
-	
-	
-	
-			
 }
+	
+
